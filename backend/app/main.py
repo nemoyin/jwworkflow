@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api import auth as auth_router
 from app.config import settings
 from app.database import engine, Base
 
@@ -22,6 +23,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG, lifespan=lifespan)
+
+app.include_router(auth_router.router)
 
 
 @app.get("/health")
