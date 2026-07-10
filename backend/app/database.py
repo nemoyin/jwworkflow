@@ -44,6 +44,3 @@ async def get_db():
             raise
 
 
-# 在文件底部导入模型，确保 Base.metadata 已注册所有表
-# （推迟导入以避免 models → database → models 的循环依赖）
-from app.models import Tenant, User  # noqa: F401 E402

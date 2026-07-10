@@ -13,6 +13,8 @@ async def lifespan(app: FastAPI):
     启动时: 创建所有尚未存在的数据库表（开发环境用）。
     关闭时: 释放数据库连接池。
     """
+    # 导入所有模型以确保 Base.metadata 已注册
+    from app.models import Tenant, User  # noqa: F401
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
