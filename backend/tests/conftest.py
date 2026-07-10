@@ -7,12 +7,18 @@ VARCHAR(36) when using SQLite.
 """
 
 import os
+import pathlib
+import tempfile
 
 # Override before any application imports to ensure
 # app.config.settings picks up the test database URL.
+# Use a temporary directory so concurrent/parallel runs don't conflict.
+_test_db_dir = pathlib.Path(tempfile.mkdtemp())
+_test_db_path = _test_db_dir / "test.db"
+
 os.environ.setdefault(
     "DATABASE_URL",
-    "sqlite+aiosqlite:///./test.db",
+    f"sqlite+aiosqlite:///{_test_db_path.as_posix()}",
 )
 os.environ.setdefault("JWT_SECRET", "test-secret")
 
@@ -64,5 +70,10 @@ async def _setup_database(event_loop):
     yield
     # Dispose the engine so the file lock is released, then clean up.
     await engine.dispose()
-    if os.path.exists("./test.db"):
-        os.remove("./test.db")
+    if _test_db_path.exists():
+        _test_db_path.unlink()
+    # Also remove the temp directory itself
+    try:
+        _test_db_dir.rmdir()
+    except OSError:
+        pass

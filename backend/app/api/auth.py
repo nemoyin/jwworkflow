@@ -5,9 +5,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.middleware.auth_middleware import get_current_user
 from app.models.tenant import Tenant
 from app.models.user import User
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse
+from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserInfo
 from app.services.auth_service import (
     create_access_token,
     hash_password,
@@ -65,3 +66,15 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
         {"sub": str(user.id), "tenant_id": str(user.tenant_id)}
     )
     return TokenResponse(access_token=token)
+
+
+@router.get("/me", response_model=UserInfo)
+async def get_me(current_user: User = Depends(get_current_user)):
+    """获取当前用户信息"""
+    return UserInfo(
+        id=str(current_user.id),
+        email=current_user.email,
+        display_name=current_user.display_name,
+        role=current_user.role,
+        tenant_id=str(current_user.tenant_id),
+    )
