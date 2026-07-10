@@ -21,10 +21,12 @@ class TestTenantModel:
 class TestUserModel:
     def test_user_creation(self):
         """验证 User 模型可以实例化"""
+        tenant = Tenant(name="测试租户", slug="test-tenant")
         user = User(
             email="test@example.com",
             password_hash="hashed_pwd",
             role="member",
+            tenant_id=tenant.id,
         )
         assert user.email == "test@example.com"
         assert user.role == "member"

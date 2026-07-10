@@ -14,8 +14,8 @@ class User(Base):
     id: Mapped[uuid.UUID] = Column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    tenant_id: Mapped[uuid.UUID | None] = Column(
-        UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True
+    tenant_id: Mapped[uuid.UUID] = Column(
+        UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
     )
     email: Mapped[str] = Column(String(255), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = Column(String(255), nullable=False)
