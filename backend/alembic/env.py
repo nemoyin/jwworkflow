@@ -15,6 +15,9 @@ if config.config_file_name is not None:
 from app.config import settings  # noqa: E402
 from app.database import Base  # noqa: E402
 
+# Import all models so they register with Base.metadata
+from app.models import Tenant, User  # noqa: E402, F401
+
 
 def _get_sync_url() -> str:
     """Convert async-only database URLs to sync equivalents for Alembic.
