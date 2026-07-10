@@ -15,4 +15,4 @@ class TestSettings:
         """验证 JWT_SECRET 必须设置"""
         monkeypatch.delenv("JWT_SECRET", raising=False)
         with pytest.raises(Exception):
-            Settings()  # 缺 JWT_SECRET 应该报错
+            Settings(_env_file=None)  # 缺 JWT_SECRET 应该报错（忽略 .env 文件）
