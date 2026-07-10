@@ -2,6 +2,9 @@
 
 Also sets ``tenant_ctx_var`` so that downstream code can retrieve the current
 tenant ID without re-parsing the JWT or re-querying the database.
+
+Also provides ``get_current_tenant`` — a convenience dependency that uses
+``Depends(get_current_user)`` to avoid duplicate JWT decode and DB queries.
 """
 
 import uuid
@@ -13,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.middleware.context import tenant_ctx_var
+from app.models.tenant import Tenant
 from app.models.user import User
 from app.services.auth_service import decode_access_token
 
@@ -50,3 +54,17 @@ async def get_current_user(
     tenant_ctx_var.set(str(user.tenant_id))
 
     return user
+
+
+async def get_current_tenant(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Tenant:
+    """从当前用户获取租户"""
+    result = await db.execute(
+        select(Tenant).where(Tenant.id == current_user.tenant_id)
+    )
+    tenant = result.scalar_one_or_none()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="租户不存在")
+    return tenant

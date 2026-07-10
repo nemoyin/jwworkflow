@@ -9,8 +9,11 @@ Verifies:
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import delete
 
 from app.main import app
+from app.models.tenant import Tenant
+from app.models.user import User
 
 client = TestClient(app)
 
@@ -28,6 +31,34 @@ class TestAuthMiddleware:
         "email": "tenant_b@test.com",
         "password": "Pass456!@#",
     }
+
+    # ------------------------------------------------------------------
+    # Class-level cleanup: remove test users/tenants so the suite is
+    # idempotent (can be re-run without a DB reset).
+    # ------------------------------------------------------------------
+
+    @pytest.fixture(scope="class", autouse=True)
+    async def _cleanup(cls):
+        """Delete test users and tenants after all class tests complete."""
+        yield
+        from app.database import async_session
+
+        emails = [cls.REGISTER_DATA_A["email"], cls.REGISTER_DATA_B["email"]]
+        async with async_session() as session:
+            await session.execute(
+                delete(User).where(User.email.in_(emails))
+            )
+            await session.execute(
+                delete(Tenant).where(
+                    Tenant.name.in_(
+                        [
+                            cls.REGISTER_DATA_A["tenant_name"],
+                            cls.REGISTER_DATA_B["tenant_name"],
+                        ]
+                    )
+                )
+            )
+            await session.commit()
 
     # ------------------------------------------------------------------
     # Fixtures
