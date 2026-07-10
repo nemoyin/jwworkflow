@@ -1,8 +1,25 @@
-from fastapi import FastAPI
-from app.config import Settings
+from contextlib import asynccontextmanager
 
-settings = Settings()
-app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG)
+from fastapi import FastAPI
+
+from app.config import settings
+from app.database import engine, Base
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """管理应用启动和关闭时的资源生命周期。
+
+    启动时: 创建所有尚未存在的数据库表（开发环境用）。
+    关闭时: 释放数据库连接池。
+    """
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    await engine.dispose()
+
+
+app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG, lifespan=lifespan)
 
 
 @app.get("/health")
