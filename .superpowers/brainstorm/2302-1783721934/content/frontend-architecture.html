@@ -1,0 +1,165 @@
+<h2>🖥️ 前端架构 &amp; 工作流画布设计</h2>
+<p class="subtitle">React + React Flow 画布，零代码拖拽体验</p>
+
+<div class="section">
+  <h3>📐 前端技术栈</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:8px">
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px; text-align:center">
+      <div style="font-size:28px; margin-bottom:4px">⚛️</div>
+      <strong>React 18</strong>
+      <p style="font-size:11px; margin:4px 0 0 0">框架基座</p>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px; text-align:center">
+      <div style="font-size:28px; margin-bottom:4px">🔗</div>
+      <strong>React Flow</strong>
+      <p style="font-size:11px; margin:4px 0 0 0">工作流画布引擎</p>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px; text-align:center">
+      <div style="font-size:28px; margin-bottom:4px">🎨</div>
+      <strong>Ant Design</strong>
+      <p style="font-size:11px; margin:4px 0 0 0">管理后台 UI 组件</p>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px; text-align:center">
+      <div style="font-size:28px; margin-bottom:4px">🔄</div>
+      <strong>EventSource (SSE)</strong>
+      <p style="font-size:11px; margin:4px 0 0 0">工作流实时状态推送</p>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px; text-align:center">
+      <div style="font-size:28px; margin-bottom:4px">🧩</div>
+      <strong>Custom Nodes</strong>
+      <p style="font-size:11px; margin:4px 0 0 0">自绘节点 UI 组件</p>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px; text-align:center">
+      <div style="font-size:28px; margin-bottom:4px">📦</div>
+      <strong>Zustand</strong>
+      <p style="font-size:11px; margin:4px 0 0 0">轻量状态管理</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🧱 前端页面结构</h3>
+  <div style="display:grid; grid-template-columns:1fr 2fr; gap:16px; margin-top:8px">
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px; background:#fafafa">
+      <h4 style="margin:0 0 8px 0">路由设计</h4>
+      <div style="font-family:monospace; font-size:11px; line-height:1.8">
+/login<br>
+/dashboard<br>
+/workflows<br>
+&nbsp;&nbsp;├ /workflows/:id/edit&nbsp;&nbsp;<span style="color:#5c5c5c">← 画布编辑器</span><br>
+&nbsp;&nbsp;└ /workflows/:id/runs&nbsp;&nbsp;<span style="color:#5c5c5c">← 运行历史</span><br>
+/knowledge&nbsp;&nbsp;<span style="color:#5c5c5c">← 知识库管理</span><br>
+/runs<br>
+/settings<br>
+/admin&nbsp;&nbsp;<span style="color:#5c5c5c">← 租户管理（admin 角色）</span>
+      </div>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px">
+      <h4 style="margin:0 0 8px 0">画布编辑器布局</h4>
+      <pre style="background:#f5f5f5; padding:8px; border-radius:4px; font-size:11px; line-height:1.5; margin:0">
+┌─────────────────────────────────────┐
+│  ← 返回  │  工作流名称    │ 发布 │ 运行 │
+├──────────┬──────────────────────────┤
+│ 🔍 节点  │                          │
+│ ─────────│                          │
+│ 🖱️ 拖拽   │     画布区域              │
+│          │     (React Flow)         │
+│ 📥 入口   │     ┌────┐  ┌───┐      │
+│ 🤖 AI    │     │输入│→│LLM│      │
+│ 🔀 控制   │     └────┘  └───┘      │
+│ 📊 数据   │              │          │
+│ 📤 输出   │            ┌───┐       │
+│          │            │输出│       │
+│          │            └───┘       │
+├──────────┴──────────────────────────┤
+│ ⚡ 节点配置面板 (点击节点后展开)      │
+│   [模型选择] [提示词编辑] [参数设置]  │
+└─────────────────────────────────────┘</pre>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🎨 自定义节点视觉设计</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:8px">
+    <div style="border-left:4px solid #1890ff; padding:8px 12px; background:#f0f5ff; border-radius:4px">
+      <div style="font-size:11px; color:#1890ff; font-weight:600">🤖 LLM</div>
+      <div style="font-size:10px; color:#595959">模型: deepseek-chat</div>
+      <div style="font-size:10px; color:#595959">temperature: 0.3</div>
+    </div>
+    <div style="border-left:4px solid #722ed1; padding:8px 12px; background:#f9f0ff; border-radius:4px">
+      <div style="font-size:11px; color:#722ed1; font-weight:600">🔀 If-Else</div>
+      <div style="font-size:10px; color:#595959">条件: score &gt; 0.8</div>
+      <div style="font-size:10px; color:#595959">分支: A / B / C</div>
+    </div>
+    <div style="border-left:4px solid #fa8c16; padding:8px 12px; background:#fff7e6; border-radius:4px">
+      <div style="font-size:11px; color:#fa8c16; font-weight:600">📄 知识检索</div>
+      <div style="font-size:10px; color:#595959">知识库: 招标法规库</div>
+      <div style="font-size:10px; color:#595959">top_k: 5</div>
+    </div>
+  </div>
+  <p style="font-size:12px; margin-top:8px; color:#595959">每个节点类型用 <strong>颜色编码</strong> 标识类别（蓝=AI，紫=控制流，橙=数据），一眼可辨</p>
+</div>
+
+<div class="section">
+  <h3>🔄 SSE 实时推流流程</h3>
+  <div style="background:#f5f5f5; padding:12px; border-radius:6px; font-family:monospace; font-size:11px; line-height:1.5">
+<span style="color:#5c5c5c">// 前端 EventSource 订阅</span><br>
+const es = new EventSource(`/api/workflows/${wfId}/run/sse`);<br><br>
+<span style="color:#5c5c5c">// 服务端推送事件</span><br>
+es.addEventListener('node_start', (e) =&gt; {&nbsp;&nbsp;<span style="color:#5c5c5c">→ 节点高亮 + 旋转动画</span><br>
+&nbsp;&nbsp;highlightNode(e.data.node_id);<br>
+});<br>
+es.addEventListener('node_output', (e) =&gt; {&nbsp;&nbsp;<span style="color:#5c5c5c">→ 节点下方显示输出预览</span><br>
+&nbsp;&nbsp;showNodeOutput(e.data.node_id, e.data.output);<br>
+});<br>
+es.addEventListener('node_done', (e) =&gt; {&nbsp;&nbsp;<span style="color:#5c5c5c">→ 节点变绿色 ✅</span><br>
+&nbsp;&nbsp;markNodeSuccess(e.data.node_id);<br>
+});<br>
+es.addEventListener('node_error', (e) =&gt; {&nbsp;&nbsp;<span style="color:#5c5c5c">→ 节点变红色 ❌</span><br>
+&nbsp;&nbsp;markNodeError(e.data.node_id, e.data.error);<br>
+});<br>
+es.addEventListener('workflow_done', (e) =&gt; {&nbsp;&nbsp;<span style="color:#5c5c5c">→ 展示最终结果</span><br>
+&nbsp;&nbsp;showFinalOutput(e.data.output);<br>
+});
+  </div>
+</div>
+
+<div class="section">
+  <h3>🧩 组件架构</h3>
+  <div style="background:#f5f5f5; padding:12px; border-radius:6px; font-family:monospace; font-size:11px; line-height:1.6; margin-top:8px">
+src/<br>
+&nbsp;&nbsp;├ components/<br>
+&nbsp;&nbsp;│&nbsp;&nbsp;├ canvas/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5c5c5c"># React Flow 封装</span><br>
+&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;├ WorkflowCanvas.tsx  &nbsp;&nbsp;<span style="color:#5c5c5c"># 画布容器</span><br>
+&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;├ CanvasToolbar.tsx &nbsp;&nbsp;<span style="color:#5c5c5c"># 工具栏（撤销/重做/缩放）</span><br>
+&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;└ NodePalette.tsx &nbsp;&nbsp;&nbsp;<span style="color:#5c5c5c"># 左侧节点面板</span><br>
+&nbsp;&nbsp;│&nbsp;&nbsp;├ nodes/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5c5c5c"># 自定义节点（每个类型一个组件）</span><br>
+&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;├ LLMNode.tsx<br>
+&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;├ IfElseNode.tsx<br>
+&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;├ KnowledgeNode.tsx<br>
+&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;├ CodeNode.tsx<br>
+&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;├ AgentNode.tsx<br>
+&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;├ HumanInputNode.tsx<br>
+&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;└ ...<br>
+&nbsp;&nbsp;│&nbsp;&nbsp;├ panels/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5c5c5c"># 侧边栏</span><br>
+&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;├ NodeConfigPanel.tsx &nbsp;<span style="color:#5c5c5c"># 节点配置面板</span><br>
+&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;└ RunResultPanel.tsx &nbsp;<span style="color:#5c5c5c"># 运行结果面板</span><br>
+&nbsp;&nbsp;│&nbsp;&nbsp;└ layout/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5c5c5c"># 布局组件</span><br>
+&nbsp;&nbsp;├ hooks/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5c5c5c"># useSSE, useWorkflow, useCanvas</span><br>
+&nbsp;&nbsp;├ stores/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5c5c5c"># Zustand stores</span><br>
+&nbsp;&nbsp;├ pages/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5c5c5c"># 路由页面</span><br>
+&nbsp;&nbsp;└ services/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5c5c5c"># API 客户端</span>
+  </div>
+</div>
+
+<hr style="margin:20px 0">
+
+<h3>🤔 确认问题</h3>
+<p>前端架构设计主要确认：</p>
+<ul>
+  <li><strong>React + React Flow + Ant Design</strong> 技术栈是否接受？</li>
+  <li><strong>SSE 推流</strong> 实现运行实时可视化 —— 节点逐步高亮、变绿/变红</li>
+  <li><strong>左侧节点面板拖拽</strong> 到画布的方式</li>
+  <li>或者你更倾向 Vue 等技术栈？</li>
+</ul>

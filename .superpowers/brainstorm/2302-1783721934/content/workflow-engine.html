@@ -1,0 +1,160 @@
+<h2>⚙️ 工作流引擎核心设计</h2>
+<p class="subtitle">DAG 引擎执行模型、变量传递与错误处理</p>
+
+<div class="section">
+  <h3>1. DAG 定义模型（核心数据结构）</h3>
+  <div style="background:#f5f5f5; padding:12px; border-radius:6px; font-family:monospace; font-size:11px; line-height:1.5">
+<span style="color:#096dd9">// 工作流定义（JSON 持久化到 PostgreSQL）</span><br>
+{<br>
+&nbsp;&nbsp;"id": "wf_xxx",<br>
+&nbsp;&nbsp;"name": "围串标分析",<br>
+&nbsp;&nbsp;"type": "workflow" | "chatflow",<br>
+&nbsp;&nbsp;"nodes": [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ "id": "n1", "type": "input", "config": {...} },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ "id": "n2", "type": "llm", "config": { "model": "...", "prompt": "..." } },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ "id": "n3", "type": "knowledge_retrieval", "config": {...} },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ "id": "n4", "type": "code", "config": { "code": "..." } },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ "id": "n5", "type": "output", "config": {...} }<br>
+&nbsp;&nbsp;],<br>
+&nbsp;&nbsp;"edges": [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ "id": "e1", "source": "n1", "target": "n2" },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ "id": "e2", "source": "n2", "target": "n3" },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ "id": "e3", "source": "n3", "target": "n4" },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ "id": "e4", "source": "n4", "target": "n5" }<br>
+&nbsp;&nbsp;]<br>
+}
+  </div>
+</div>
+
+<div class="section">
+  <h3>2. 同步执行引擎流程</h3>
+  <div style="background:#f5f5f5; padding:12px; border-radius:6px; font-family:monospace; font-size:11px; line-height:1.5">
+<span style="color:#096dd9">// 伪代码：同步 DAG 执行</span><br><br>
+<span style="color:#5c5c5c">def execute_workflow(wf_id, inputs):</span><br>
+&nbsp;&nbsp;dag = load_workflow(wf_id)&nbsp;&nbsp;<span style="color:#5c5c5c"># 从 PG 加载 DAG 定义</span><br>
+&nbsp;&nbsp;ctx = ExecutionContext(inputs)&nbsp;&nbsp;<span style="color:#5c5c5c"># 初始化执行上下文</span><br>
+&nbsp;&nbsp;topo = topological_sort(dag)&nbsp;&nbsp;<span style="color:#5c5c5c"># 拓扑排序</span><br><br>
+&nbsp;&nbsp;<span style="color:#5c5c5c"># SSE 推送：开始工作流</span><br>
+&nbsp;&nbsp;emit("workflow_start", {wf_id})<br><br>
+&nbsp;&nbsp;<span style="color:#5c5c5c"># 逐层遍历 DAG</span><br>
+&nbsp;&nbsp;while topo.has_next():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;nodes = topo.next_level()&nbsp;&nbsp;<span style="color:#5c5c5c"># 获取当前层所有可执行节点</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;for node in nodes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5c5c5c"># SSE 推送：节点开始</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;emit("node_start", {node_id})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result = execute_node(node, ctx)&nbsp;&nbsp;<span style="color:#5c5c5c"># 阻塞执行</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ctx.set(node.id, result)&nbsp;&nbsp;<span style="color:#5c5c5c"># 存入上下文</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5c5c5c"># SSE 推送：节点完成</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;emit("node_done", {node_id, result})<br>
+&nbsp;&nbsp;&nbsp;&nbsp;topo.advance()<br><br>
+&nbsp;&nbsp;<span style="color:#5c5c5c"># 获取最终输出节点结果</span><br>
+&nbsp;&nbsp;output = ctx.get(output_node)<br>
+&nbsp;&nbsp;emit("workflow_done", {output})<br>
+&nbsp;&nbsp;save_run_history(wf_id, ctx, output)<br>
+&nbsp;&nbsp;return output
+  </div>
+</div>
+
+<div class="section">
+  <h3>3. 节点执行器接口</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px">
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px">
+      <span class="label" style="color:#1890ff">统一接口</span>
+      <h4 style="margin:4px 0">BaseNodeExecutor</h4>
+      <div style="background:#f5f5f5; padding:8px; border-radius:4px; font-family:monospace; font-size:11px">
+class BaseNodeExecutor:<br>
+&nbsp;&nbsp;def execute(self, ctx: Context,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;config: dict) -> Any:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"""每个节点类型各自实现"""
+      </div>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px">
+      <span class="label" style="color:#1890ff">内置实现</span>
+      <h4 style="margin:4px 0">节点注册表</h4>
+      <div style="background:#f5f5f5; padding:8px; border-radius:4px; font-family:monospace; font-size:11px">
+NODE_REGISTRY = {<br>
+&nbsp;&nbsp;"llm": LLMExecutor,<br>
+&nbsp;&nbsp;"knowledge": KnowledgeExecutor,<br>
+&nbsp;&nbsp;"agent": AgentExecutor,<br>
+&nbsp;&nbsp;"code": CodeExecutor,<br>
+&nbsp;&nbsp;"if_else": IfElseExecutor,<br>
+&nbsp;&nbsp;"http_request": HttpExecutor,<br>
+&nbsp;&nbsp;"iteration": IterationExecutor,<br>
+&nbsp;&nbsp;# ...<br>
+}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>4. 变量传递与引用</h3>
+  <div style="background:#f5f5f5; padding:12px; border-radius:6px; font-family:monospace; font-size:11px; line-height:1.5">
+<span style="color:#096dd9">// 变量引用语法（参考 Dify 和 Jinja2）</span><br><br>
+<span style="color:#5c5c5c"># 引用上游节点输出</span><br>
+{{ n2.output }}<br>
+{{ n3.knowledge.chunks }}<br><br>
+<span style="color:#5c5c5c"># 引用输入变量</span><br>
+{{ input.file_path }}<br><br>
+<span style="color:#5c5c5c"># 上下文路径访问</span><br>
+{{ n2.output.summary }}<br>
+{{ n4.result.items[0].score }}
+  </div>
+</div>
+
+<div class="section">
+  <h3>5. If-Else 分支执行</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px">
+    <div style="background:#f5f5f5; padding:12px; border-radius:6px; font-family:monospace; font-size:11px; line-height:1.5">
+<span style="color:#096dd9">// 条件判断</span><br>
+if {{ n1.score }} &gt; 0.8:<br>
+&nbsp;&nbsp;→ 分支 A (合规)<br>
+elif {{ n1.score }} &gt; 0.5:<br>
+&nbsp;&nbsp;→ 分支 B (需人工审核)<br>
+else:<br>
+&nbsp;&nbsp;→ 分支 C (不合规)
+    </div>
+    <div style="background:#f5f5f5; padding:12px; border-radius:6px; font-family:monospace; font-size:11px; line-height:1.5">
+<span style="color:#096dd9">// 分支变量聚合</span><br>
+// 不同分支的输出用<br>// 变量聚合器合并<br><br>
+aggregator = VariableAggregator({<br>
+&nbsp;&nbsp;"branch_a": ctx.n5,<br>
+&nbsp;&nbsp;"branch_b": ctx.n6,<br>
+&nbsp;&nbsp;"branch_c": ctx.n7<br>
+})<br>
+result = aggregator.merge()
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>6. 错误处理策略</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px">
+    <div style="background:#fff7e6; padding:12px; border-radius:8px">
+      <h4 style="margin:0 0 6px 0; color:#d46b08">节点级错误</h4>
+      <ul style="margin:0; font-size:12px">
+        <li>重试策略：1次自动重试</li>
+        <li>超时：默认 60s（LLM 节点可配置）</li>
+        <li>失败模式：继续/终止/降级</li>
+      </ul>
+    </div>
+    <div style="background:#f6ffed; padding:12px; border-radius:8px">
+      <h4 style="margin:0 0 6px 0; color:#389e0d">工作流级错误</h4>
+      <ul style="margin:0; font-size:12px">
+        <li>SSE 推送错误信息到前端</li>
+        <li>运行记录持久化（即使失败）</li>
+        <li>提供手动重试入口</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<hr style="margin:20px 0">
+
+<h3>🤔 确认问题</h3>
+<p>这个工作流引擎设计看起来合理吗？特别是：</p>
+<ul>
+  <li><strong>同步执行 + SSE 推流</strong> — 长任务时前端能实时看到进度</li>
+  <li><strong>变量引用语法</strong> — {{ node_id.output_field }} 这种类似 Dify 的做法</li>
+  <li><strong>节点注册表模式</strong> — 新增节点类型只需实现一个类 + 注册</li>
+</ul>

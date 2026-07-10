@@ -1,0 +1,163 @@
+<h2>🧩 MVP 节点体系设计</h2>
+<p class="subtitle">基于 Dify 参考 + jwworkflow 场景定制的首期节点</p>
+
+<div class="section">
+  <h3>📥 入口节点（2种）</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px">
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px; background:#fff">
+      <span class="label" style="color:#1890ff">入口</span>
+      <h4 style="margin:4px 0">用户输入</h4>
+      <p style="font-size:12px; margin:0">定义输入字段：文本/数值/下拉/文件/JSON</p>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px; background:#fff">
+      <span class="label" style="color:#1890ff">入口</span>
+      <h4 style="margin:4px 0">Webhook 触发器</h4>
+      <p style="font-size:12px; margin:0">HTTP 回调触发工作流</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🤖 AI 节点（3种）⭐ 核心</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:8px">
+    <div style="border:2px solid #1890ff; border-radius:8px; padding:12px; background:#e6f7ff">
+      <span class="label" style="color:#1890ff">AI 核心</span>
+      <h4 style="margin:4px 0">LLM</h4>
+      <p style="font-size:12px; margin:0">多模型推理，提示词编排，流式/非流式输出</p>
+    </div>
+    <div style="border:2px solid #1890ff; border-radius:8px; padding:12px; background:#e6f7ff">
+      <span class="label" style="color:#1890ff">AI 核心</span>
+      <h4 style="margin:4px 0">知识检索 (RAG)</h4>
+      <p style="font-size:12px; margin:0">pgvector 向量搜索 + 全文搜索混合检索</p>
+    </div>
+    <div style="border:2px solid #1890ff; border-radius:8px; padding:12px; background:#e6f7ff">
+      <span class="label" style="color:#1890ff">AI 核心</span>
+      <h4 style="margin:4px 0">Agent</h4>
+      <p style="font-size:12px; margin:0">自主推理+工具调用，复用你已有的场景智能体</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🔀 逻辑控制节点（3种）</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:8px">
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px">
+      <span class="label" style="color:#722ed1">控制流</span>
+      <h4 style="margin:4px 0">If-Else</h4>
+      <p style="font-size:12px; margin:0">条件分支：文本/数值/空值判断</p>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px">
+      <span class="label" style="color:#722ed1">控制流</span>
+      <h4 style="margin:4px 0">迭代 (Iteration)</h4>
+      <p style="font-size:12px; margin:0">数组元素顺序处理，批量分析场景</p>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px">
+      <span class="label" style="color:#722ed1">控制流</span>
+      <h4 style="margin:4px 0">人工输入</h4>
+      <p style="font-size:12px; margin:0">暂停流程等待审核/补充数据</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>📊 数据处理节点（4种）</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px">
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px">
+      <span class="label" style="color:#fa8c16">数据处理</span>
+      <h4 style="margin:4px 0">代码 (Code)</h4>
+      <p style="font-size:12px; margin:0">Python 沙箱执行，复杂规则逻辑</p>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px">
+      <span class="label" style="color:#fa8c16">数据处理</span>
+      <h4 style="margin:4px 0">模板 (Template)</h4>
+      <p style="font-size:12px; margin:0">Jinja2 模板渲染，变量插值</p>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px">
+      <span class="label" style="color:#fa8c16">数据处理</span>
+      <h4 style="margin:4px 0">文档提取器</h4>
+      <p style="font-size:12px; margin:0">解析 PDF/DOCX/TXT</p>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px">
+      <span class="label" style="color:#fa8c16">数据处理</span>
+      <h4 style="margin:4px 0">HTTP 请求</h4>
+      <p style="font-size:12px; margin:0">REST API 调用（企查查等外部服务）</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>📤 输出节点（2种）</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px">
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px">
+      <span class="label" style="color:#eb2f96">输出</span>
+      <h4 style="margin:4px 0">Answer（对话流）</h4>
+      <p style="font-size:12px; margin:0">流式 Markdown 响应</p>
+    </div>
+    <div style="border:1px solid #e8e8e8; border-radius:8px; padding:12px">
+      <span class="label" style="color:#eb2f96">输出</span>
+      <h4 style="margin:4px 0">Output（工作流）</h4>
+      <p style="font-size:12px; margin:0">结构化多变量输出</p>
+    </div>
+  </div>
+</div>
+
+<hr style="margin:20px 0">
+
+<h3>📊 与 Dify MVP 的节点对比</h3>
+<div style="overflow-x:auto; margin-top:8px">
+  <table style="width:100%; border-collapse:collapse; font-size:12px">
+    <tr style="background:#fafafa">
+      <th style="padding:8px; border:1px solid #f0f0f0; text-align:left">类别</th>
+      <th style="padding:8px; border:1px solid #f0f0f0; text-align:left">Dify 节点数</th>
+      <th style="padding:8px; border:1px solid #f0f0f0; text-align:left">jwworkflow MVP</th>
+      <th style="padding:8px; border:1px solid #f0f0f0; text-align:left">差异说明</th>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:1px solid #f0f0f0">入口</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">4</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">2</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">去掉了定时/插件触发器（后期加）</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:1px solid #f0f0f0">AI/知识</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">4</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">3</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">去掉了问题分类器（后期用 Agent 替代）</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:1px solid #f0f0f0">逻辑控制</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">4</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">3</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">去掉了循环节点（迭代可覆盖大部分场景）</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:1px solid #f0f0f0">数据处理</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">5</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">4</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">去掉了参数提取器（LLM节点可替代）</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:1px solid #f0f0f0">变量管理</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">3</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">1</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">仅变量聚合器（合并分支输出）</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; border:1px solid #f0f0f0">输出</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">2</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">2</td>
+      <td style="padding:8px; border:1px solid #f0f0f0">与 Dify 一致</td>
+    </tr>
+    <tr style="background:#f6ffed">
+      <td style="padding:8px; border:1px solid #f0f0f0"><strong>合计</strong></td>
+      <td style="padding:8px; border:1px solid #f0f0f0"><strong>22</strong></td>
+      <td style="padding:8px; border:1px solid #f0f0f0"><strong>15</strong></td>
+      <td style="padding:8px; border:1px solid #f0f0f0">MVP 裁剪 30%，聚焦核心编排能力</td>
+    </tr>
+  </table>
+</div>
+
+<hr style="margin:20px 0">
+
+<h3>📝 确认问题</h3>
+<p>这个节点清单你觉得合理吗？有没有要增删的节点类型？</p>
