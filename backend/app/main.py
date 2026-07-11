@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from app.api import auth as auth_router
 from app.api import workflows as workflows_router
+from app.api import runs as runs_router
 from app.config import settings
 from app.database import engine, Base
 
@@ -27,6 +28,7 @@ app = FastAPI(title=settings.APP_NAME, debug=settings.DEBUG, lifespan=lifespan)
 
 app.include_router(auth_router.router)
 app.include_router(workflows_router.router)
+app.include_router(runs_router.router)
 
 
 @app.get("/health")

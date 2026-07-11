@@ -178,6 +178,12 @@ async def run_workflow(
         output = {}
         error_text = str(e)
 
+    # 收集节点执行结果快照
+    node_results = []
+    for evt in executor.get_events():
+        if evt["type"] in ("node_start", "node_done", "node_error"):
+            node_results.append(evt)
+
     # 保存运行记录
     run = Run(
         workflow_id=wf_id,
@@ -188,6 +194,7 @@ async def run_workflow(
         output=output,
         error=error_text,
         duration_ms=duration,
+        node_results=node_results,
     )
     db.add(run)
     await db.flush()

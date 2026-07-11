@@ -18,4 +18,5 @@ class Run(Base):
     output: Mapped[dict] = Column(JSON, default=dict)
     error: Mapped[str] = Column(Text, nullable=True)
     duration_ms: Mapped[int] = Column(Integer, nullable=True)
+    node_results: Mapped[list] = Column(JSON, nullable=True)
     created_at: Mapped[datetime] = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

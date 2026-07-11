@@ -4,6 +4,7 @@ import zhCN from "antd/locale/zh_CN"
 import LoginPage from "./pages/LoginPage"
 import WorkflowListPage from "./pages/WorkflowListPage"
 import WorkflowEditorPage from "./pages/WorkflowEditorPage"
+import RunHistoryPage from "./pages/RunHistoryPage"
 import AuthGuard from "./components/layout/AuthGuard"
 import AppLayout from "./components/layout/AppLayout"
 
@@ -19,6 +20,7 @@ const App = () => {
               <Route path="/workflows" element={<WorkflowListPage />} />
               <Route path="/workflows/new" element={<WorkflowEditorPage />} />
               <Route path="/workflows/:id" element={<WorkflowEditorPage />} />
+              <Route path="/history" element={<RunHistoryPage />} />
             </Route>
           </Route>
         </Routes>
