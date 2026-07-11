@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Typography,
   Input,
@@ -8,13 +8,29 @@ import {
 } from 'antd';
 import { useWorkflowStore } from '../../stores/workflowStore';
 import { nodeColorMap, nodeLabelMap } from '../nodes';
+import { api } from '../../services/api';
 
 const { Text, Title } = Typography;
 const { TextArea } = Input;
 
+interface AvailableModel {
+  id: string; label: string; model_name: string;
+  supports_tools: boolean; supports_streaming: boolean; max_tokens: number;
+}
+
 const NodeConfigPanel: React.FC = () => {
   const selectedNode = useWorkflowStore((s) => s.selectedNode);
   const updateNodeConfig = useWorkflowStore((s) => s.updateNodeConfig);
+  const [models, setModels] = useState<AvailableModel[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
+
+  useEffect(() => {
+    setModelsLoading(true);
+    api.get<AvailableModel[]>('/admin/models/available')
+      .then(setModels)
+      .catch(() => setModels([]))
+      .finally(() => setModelsLoading(false));
+  }, []);
 
   const updateConfig = useCallback(
     (key: string, value: any) => {
@@ -96,16 +112,11 @@ const NodeConfigPanel: React.FC = () => {
               <Select
                 size="small"
                 style={{ width: '100%' }}
-                value={config.model || 'gpt-4o'}
+                value={config.model || ''}
                 onChange={(v) => updateConfig('model', v)}
-                options={[
-                  { value: 'gpt-4o', label: 'GPT-4o' },
-                  { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-                  { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet' },
-                  { value: 'claude-3-haiku', label: 'Claude 3 Haiku' },
-                  { value: 'deepseek-chat', label: 'DeepSeek Chat' },
-                  { value: 'qwen-max', label: '通义千问 Max' },
-                ]}
+                loading={modelsLoading}
+                options={models.map(m => ({ value: m.model_name, label: m.label }))}
+                placeholder="选择模型"
               />
             </div>
             <div style={{ marginBottom: 12 }}>
@@ -555,16 +566,11 @@ const NodeConfigPanel: React.FC = () => {
               <Select
                 size="small"
                 style={{ width: '100%' }}
-                value={config.model || 'gpt-4o'}
+                value={config.model || ''}
                 onChange={(v) => updateConfig('model', v)}
-                options={[
-                  { value: 'gpt-4o', label: 'GPT-4o' },
-                  { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-                  { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet' },
-                  { value: 'claude-3-haiku', label: 'Claude 3 Haiku' },
-                  { value: 'deepseek-chat', label: 'DeepSeek Chat' },
-                  { value: 'qwen-max', label: '通义千问 Max' },
-                ]}
+                loading={modelsLoading}
+                options={models.map(m => ({ value: m.model_name, label: m.label }))}
+                placeholder="选择模型"
               />
             </div>
             <div style={{ marginBottom: 12 }}>

@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./data/uploads"
     KNOWLEDGE_DIR: str = "./data/knowledge"
 
+    # LLM API 配置
+    LLM_API_KEY: str = ""
+    LLM_BASE_URL: str = "https://api.deepseek.com"
+    LLM_DEFAULT_MODEL: str = "deepseek-v4-pro"
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

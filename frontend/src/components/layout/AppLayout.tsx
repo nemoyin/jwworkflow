@@ -5,6 +5,7 @@ import {
   BookOutlined,
   HistoryOutlined,
   AppstoreOutlined,
+  ApiOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   LogoutOutlined,
@@ -43,6 +44,11 @@ const AppLayout = () => {
       key: '/templates',
       icon: <AppstoreOutlined />,
       label: '模板市场',
+    },
+    {
+      key: '/admin/models',
+      icon: <ApiOutlined />,
+      label: '模型管理',
     },
   ];
 
