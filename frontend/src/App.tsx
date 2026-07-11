@@ -4,17 +4,23 @@ import zhCN from "antd/locale/zh_CN"
 import LoginPage from "./pages/LoginPage"
 import WorkflowListPage from "./pages/WorkflowListPage"
 import WorkflowEditorPage from "./pages/WorkflowEditorPage"
+import AuthGuard from "./components/layout/AuthGuard"
+import AppLayout from "./components/layout/AppLayout"
 
 const App = () => {
   return (
     <ConfigProvider locale={zhCN}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/workflows" replace />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/workflows" element={<WorkflowListPage />} />
-          <Route path="/workflows/new" element={<WorkflowEditorPage />} />
-          <Route path="/workflows/:id" element={<WorkflowEditorPage />} />
+          <Route element={<AuthGuard />}>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Navigate to="/workflows" replace />} />
+              <Route path="/workflows" element={<WorkflowListPage />} />
+              <Route path="/workflows/new" element={<WorkflowEditorPage />} />
+              <Route path="/workflows/:id" element={<WorkflowEditorPage />} />
+            </Route>
+          </Route>
         </Routes>
       </BrowserRouter>
     </ConfigProvider>
