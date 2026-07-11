@@ -6,6 +6,8 @@ import { useWorkflowStore } from '../stores/workflowStore';
 import CanvasToolbar from '../components/canvas/CanvasToolbar';
 import NodePalette from '../components/canvas/NodePalette';
 import WorkflowCanvas from '../components/canvas/WorkflowCanvas';
+import NodeConfigPanel from '../components/panels/NodeConfigPanel';
+import { nodeTypes } from '../components/nodes';
 
 const WorkflowEditorPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,8 +35,9 @@ const WorkflowEditorPage = () => {
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
           <NodePalette />
           <div style={{ flex: 1, position: 'relative' }}>
-            <WorkflowCanvas />
+            <WorkflowCanvas nodeTypes={nodeTypes} />
           </div>
+          <NodeConfigPanel />
         </div>
       </div>
     </ReactFlowProvider>

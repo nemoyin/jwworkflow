@@ -1,9 +1,13 @@
 import React, { useCallback, useRef, DragEvent } from 'react';
-import ReactFlow, { useReactFlow, Background, Controls, Node } from 'reactflow';
+import ReactFlow, { useReactFlow, Background, Controls, Node, NodeTypes } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useWorkflowStore } from '../../stores/workflowStore';
 
-const WorkflowCanvas: React.FC = () => {
+interface WorkflowCanvasProps {
+  nodeTypes?: NodeTypes;
+}
+
+const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodeTypes }) => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const reactFlowInstance = useReactFlow();
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode, selectNode } =
@@ -51,6 +55,7 @@ const WorkflowCanvas: React.FC = () => {
         onDragOver={onDragOver}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
+        nodeTypes={nodeTypes}
         fitView
       >
         <Background />
