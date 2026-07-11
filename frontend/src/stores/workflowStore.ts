@@ -87,17 +87,47 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
 
   loadWorkflow: async (id) => {
     const wf: any = await api.get(`/workflows/${id}`);
+    // Normalize nodes from API format to React Flow format:
+    //   API:  { id, type, config, position? }
+    //   Flow: { id, type, position, data: { label, config } }
+    const nodes: Node[] = (wf.dag_definition.nodes || []).map((n: any, i: number) => ({
+      id: n.id,
+      type: n.type,
+      position: n.position || { x: 250 * (i % 3), y: 120 * (Math.floor(i / 3) + 1) },
+      data: {
+        label: n.type || 'unknown',
+        config: n.config || {},
+      },
+    }));
+    const edges = (wf.dag_definition.edges || []).map((e: any) => ({
+      id: e.id || `e_${e.source}_${e.target}`,
+      source: e.source,
+      target: e.target,
+    }));
     set({
       workflowId: wf.id,
       workflowName: wf.name,
-      nodes: wf.dag_definition.nodes || [],
-      edges: wf.dag_definition.edges || [],
+      nodes,
+      edges,
     });
   },
 
   saveWorkflow: async () => {
     const state = get();
-    const dag = { nodes: state.nodes, edges: state.edges };
+    // Convert from React Flow format back to API format
+    const dag = {
+      nodes: state.nodes.map((n) => ({
+        id: n.id,
+        type: n.type,
+        position: n.position,
+        config: (n.data as Record<string, any>)?.config || {},
+      })),
+      edges: state.edges.map((e) => ({
+        id: e.id,
+        source: e.source,
+        target: e.target,
+      })),
+    };
     if (state.workflowId) {
       await api.put(`/workflows/${state.workflowId}`, { dag_definition: dag });
     } else {

@@ -15,6 +15,19 @@ from app.schemas.template import (
 
 router = APIRouter(prefix="/api/templates", tags=["templates"])
 
+
+def _ensure_node_positions(dag: dict) -> dict:
+    """为没有 position 的节点自动分配布局位置"""
+    nodes = dag.get("nodes", [])
+    updated = False
+    for i, node in enumerate(nodes):
+        if "position" not in node:
+            nodes[i] = {**node, "position": {"x": 250 * (i % 3), "y": 120 * (i // 3 + 1)}}
+            updated = True
+    if updated:
+        dag["nodes"] = nodes
+    return dag
+
 # ---------------------------------------------------------------------------
 # Pre-built template definitions
 # ---------------------------------------------------------------------------
@@ -313,7 +326,7 @@ async def instantiate_template(
     # 检查是否是内置模板
     for t in BUILTIN_TEMPLATES:
         if template_id == f"builtin_{t['name']}":
-            dag_definition = t["dag_definition"]
+            dag_definition = _ensure_node_positions(t["dag_definition"])
             template_name = t["name"]
             break
 
@@ -329,7 +342,7 @@ async def instantiate_template(
         tpl = result.scalar_one_or_none()
         if not tpl:
             raise HTTPException(status_code=404, detail="模板不存在")
-        dag_definition = tpl.dag_definition
+        dag_definition = _ensure_node_positions(tpl.dag_definition)
         template_name = tpl.name
 
     # 创建工作流
