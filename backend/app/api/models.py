@@ -302,13 +302,16 @@ async def test_model(
         reset_client()
 
         start = time.time()
-        result_text = chat_completion(
-            messages=[{"role": "user", "content": "Hello, respond with 'OK' only."}],
+        result_text = await chat_completion(
+            messages=[{"role": "user", "content": "Hello"}],
             model=model.model_name,
-            max_tokens=10,
+            max_tokens=100,
+            api_key=provider.api_key,
+            base_url=provider.base_url,
         )
         latency = int((time.time() - start) * 1000)
-        return ModelTestResponse(success=True, message=f"响应成功: {result_text[:50]}", latency_ms=latency)
+        msg = (result_text or "(no output)")[:100]
+        return ModelTestResponse(success=True, message=f"响应: {msg}", latency_ms=latency)
     except Exception as e:
         return ModelTestResponse(success=False, message=f"连接失败: {str(e)}")
     finally:
