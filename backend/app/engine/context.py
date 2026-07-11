@@ -69,10 +69,10 @@ class ExecutionContext:
         for key in path[1:]:
             if isinstance(value, dict):
                 value = value.get(key)
+                if value is None:
+                    return ""  # 缺失变量返回空字符串而非报错
             else:
                 raise KeyError(f"Cannot resolve '{expression}': '{key}' not found")
-            if value is None:
-                raise KeyError(f"Cannot resolve '{expression}': '{key}' is None")
 
         return value
 
