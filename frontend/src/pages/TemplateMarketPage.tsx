@@ -148,13 +148,7 @@ const TemplateMarketPage = () => {
                 hoverable
                 onClick={() => handleInstantiate(tpl)}
                 style={{ height: '100%', borderRadius: 8 }}
-                bodyStyle={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  textAlign: 'center',
-                  padding: 32,
-                }}
+                styles={{ body: { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: 32 } }}
               >
                 <div style={{ marginBottom: 16 }}>
                   {getIcon(tpl.icon)}
@@ -188,7 +182,7 @@ const TemplateMarketPage = () => {
         onCancel={() => setModalVisible(false)}
         okText="创建工作流"
         cancelText="取消"
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical">
           <Form.Item

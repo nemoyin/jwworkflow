@@ -1,0 +1,472 @@
+INFO:     Started server process [37416]
+INFO:     Waiting for application startup.
+2026-07-11 14:43:03,778 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:43:03,778 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("tenants")
+2026-07-11 14:43:03,778 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-11 14:43:03,779 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("users")
+2026-07-11 14:43:03,779 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-11 14:43:03,780 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("workflows")
+2026-07-11 14:43:03,780 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-11 14:43:03,781 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("runs")
+2026-07-11 14:43:03,781 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-11 14:43:03,783 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("documents")
+2026-07-11 14:43:03,783 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-11 14:43:03,783 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("embeddings")
+2026-07-11 14:43:03,783 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-11 14:43:03,784 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("conversations")
+2026-07-11 14:43:03,784 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-11 14:43:03,785 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("messages")
+2026-07-11 14:43:03,785 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-11 14:43:03,786 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("workflow_templates")
+2026-07-11 14:43:03,786 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-11 14:43:03,787 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("model_providers")
+2026-07-11 14:43:03,787 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-11 14:43:03,787 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("model_registry")
+2026-07-11 14:43:03,787 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-07-11 14:43:03,788 INFO sqlalchemy.engine.Engine COMMIT
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+INFO:     127.0.0.1:62597 - "OPTIONS /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62601 - "OPTIONS /api/auth/login HTTP/1.1" 200 OK
+2026-07-11 14:43:06,371 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:43:06,378 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.email = ?
+2026-07-11 14:43:06,378 INFO sqlalchemy.engine.Engine [generated in 0.00014s] ('admin@demo.com',)
+INFO:     127.0.0.1:62603 - "POST /api/auth/login HTTP/1.1" 200 OK
+2026-07-11 14:43:06,622 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:43:22,706 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:43:22,707 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.email = ?
+2026-07-11 14:43:22,707 INFO sqlalchemy.engine.Engine [cached since 16.33s ago] ('admin@demo.com',)
+INFO:     127.0.0.1:59211 - "POST /api/auth/login HTTP/1.1" 200 OK
+2026-07-11 14:43:22,936 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:11,478 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:11,478 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.email = ?
+2026-07-11 14:44:11,478 INFO sqlalchemy.engine.Engine [cached since 65.11s ago] ('admin@demo.com',)
+INFO:     127.0.0.1:65088 - "POST /api/auth/login HTTP/1.1" 200 OK
+2026-07-11 14:44:11,707 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:14,903 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:14,905 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:14,906 INFO sqlalchemy.engine.Engine [generated in 0.00026s] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:14,909 INFO sqlalchemy.engine.Engine SELECT count(documents.id) AS count_1 
+FROM documents 
+WHERE documents.tenant_id = ?
+2026-07-11 14:44:14,909 INFO sqlalchemy.engine.Engine [generated in 0.00028s] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:44:14,911 INFO sqlalchemy.engine.Engine SELECT documents.id, documents.tenant_id, documents.name, documents.file_path, documents.content, documents.content_type, documents.file_size, documents.status, documents.error, documents.created_at, documents.updated_at 
+FROM documents 
+WHERE documents.tenant_id = ? ORDER BY documents.created_at DESC
+2026-07-11 14:44:14,911 INFO sqlalchemy.engine.Engine [generated in 0.00017s] ('ab1cad03891648439c396c7540f41e87',)
+INFO:     127.0.0.1:64884 - "GET /api/knowledge HTTP/1.1" 200 OK
+2026-07-11 14:44:14,913 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:15,229 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:15,229 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:15,229 INFO sqlalchemy.engine.Engine [cached since 0.3239s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:15,231 INFO sqlalchemy.engine.Engine SELECT count(documents.id) AS count_1 
+FROM documents 
+WHERE documents.tenant_id = ?
+2026-07-11 14:44:15,231 INFO sqlalchemy.engine.Engine [cached since 0.3225s ago] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:44:15,233 INFO sqlalchemy.engine.Engine SELECT documents.id, documents.tenant_id, documents.name, documents.file_path, documents.content, documents.content_type, documents.file_size, documents.status, documents.error, documents.created_at, documents.updated_at 
+FROM documents 
+WHERE documents.tenant_id = ? ORDER BY documents.created_at DESC
+2026-07-11 14:44:15,233 INFO sqlalchemy.engine.Engine [cached since 0.3213s ago] ('ab1cad03891648439c396c7540f41e87',)
+INFO:     127.0.0.1:55550 - "GET /api/knowledge HTTP/1.1" 200 OK
+2026-07-11 14:44:15,234 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:17,055 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:17,055 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:17,055 INFO sqlalchemy.engine.Engine [cached since 2.149s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:17,058 INFO sqlalchemy.engine.Engine SELECT runs.id, runs.workflow_id, runs.tenant_id, runs.triggered_by, runs.status, runs.input, runs.output, runs.error, runs.duration_ms, runs.node_results, runs.created_at, workflows.name 
+FROM runs JOIN workflows ON runs.workflow_id = workflows.id 
+WHERE runs.tenant_id = ? ORDER BY runs.created_at DESC
+2026-07-11 14:44:17,058 INFO sqlalchemy.engine.Engine [generated in 0.00017s] ('ab1cad03891648439c396c7540f41e87',)
+INFO:     127.0.0.1:55422 - "GET /api/runs HTTP/1.1" 200 OK
+2026-07-11 14:44:17,060 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:17,371 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:17,371 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:17,371 INFO sqlalchemy.engine.Engine [cached since 2.465s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:17,372 INFO sqlalchemy.engine.Engine SELECT runs.id, runs.workflow_id, runs.tenant_id, runs.triggered_by, runs.status, runs.input, runs.output, runs.error, runs.duration_ms, runs.node_results, runs.created_at, workflows.name 
+FROM runs JOIN workflows ON runs.workflow_id = workflows.id 
+WHERE runs.tenant_id = ? ORDER BY runs.created_at DESC
+2026-07-11 14:44:17,372 INFO sqlalchemy.engine.Engine [cached since 0.3149s ago] ('ab1cad03891648439c396c7540f41e87',)
+INFO:     127.0.0.1:55898 - "GET /api/runs HTTP/1.1" 200 OK
+2026-07-11 14:44:17,374 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:17,679 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:17,679 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:17,679 INFO sqlalchemy.engine.Engine [cached since 2.774s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:17,681 INFO sqlalchemy.engine.Engine SELECT workflow_templates.id, workflow_templates.name, workflow_templates.description, workflow_templates.category, workflow_templates.dag_definition, workflow_templates.icon, workflow_templates.sort_order, workflow_templates.is_builtin, workflow_templates.created_at 
+FROM workflow_templates ORDER BY workflow_templates.sort_order
+2026-07-11 14:44:17,681 INFO sqlalchemy.engine.Engine [generated in 0.00012s] ()
+INFO:     127.0.0.1:58595 - "GET /api/templates HTTP/1.1" 200 OK
+2026-07-11 14:44:17,683 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:17,991 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:17,991 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:17,991 INFO sqlalchemy.engine.Engine [cached since 3.085s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:17,992 INFO sqlalchemy.engine.Engine SELECT workflow_templates.id, workflow_templates.name, workflow_templates.description, workflow_templates.category, workflow_templates.dag_definition, workflow_templates.icon, workflow_templates.sort_order, workflow_templates.is_builtin, workflow_templates.created_at 
+FROM workflow_templates ORDER BY workflow_templates.sort_order
+2026-07-11 14:44:17,993 INFO sqlalchemy.engine.Engine [cached since 0.3112s ago] ()
+INFO:     127.0.0.1:58323 - "GET /api/templates HTTP/1.1" 200 OK
+2026-07-11 14:44:17,994 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:26,153 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:26,153 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:26,153 INFO sqlalchemy.engine.Engine [cached since 11.25s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:26,157 INFO sqlalchemy.engine.Engine SELECT model_providers.id, model_providers.tenant_id, model_providers.name, model_providers.provider_type, model_providers.api_key, model_providers.base_url, model_providers.is_active, model_providers.sort_order, model_providers.created_at 
+FROM model_providers 
+WHERE model_providers.tenant_id = ? ORDER BY model_providers.sort_order, model_providers.created_at
+2026-07-11 14:44:26,157 INFO sqlalchemy.engine.Engine [generated in 0.00017s] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:44:26,157 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:26,158 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:26,158 INFO sqlalchemy.engine.Engine [cached since 11.25s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+INFO:     127.0.0.1:51150 - "GET /api/admin/providers HTTP/1.1" 200 OK
+2026-07-11 14:44:26,158 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:26,160 INFO sqlalchemy.engine.Engine SELECT model_registry.id, model_registry.provider_id, model_registry.model_name, model_registry.display_name, model_registry.capabilities, model_registry.is_active, model_registry.sort_order, model_registry.created_at 
+FROM model_registry JOIN model_providers ON model_providers.id = model_registry.provider_id 
+WHERE model_providers.tenant_id = ? ORDER BY model_registry.sort_order, model_registry.model_name
+2026-07-11 14:44:26,160 INFO sqlalchemy.engine.Engine [generated in 0.00017s] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:44:26,162 INFO sqlalchemy.engine.Engine SELECT model_providers.id, model_providers.tenant_id, model_providers.name, model_providers.provider_type, model_providers.api_key, model_providers.base_url, model_providers.is_active, model_providers.sort_order, model_providers.created_at 
+FROM model_providers 
+WHERE model_providers.id IN (SELECT 1 FROM (SELECT 1) WHERE 1!=1)
+2026-07-11 14:44:26,162 INFO sqlalchemy.engine.Engine [generated in 0.00016s] ()
+INFO:     127.0.0.1:51152 - "GET /api/admin/models HTTP/1.1" 200 OK
+2026-07-11 14:44:26,163 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:26,401 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:26,401 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:26,401 INFO sqlalchemy.engine.Engine [cached since 11.5s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:26,403 INFO sqlalchemy.engine.Engine SELECT model_providers.id, model_providers.tenant_id, model_providers.name, model_providers.provider_type, model_providers.api_key, model_providers.base_url, model_providers.is_active, model_providers.sort_order, model_providers.created_at 
+FROM model_providers 
+WHERE model_providers.tenant_id = ? ORDER BY model_providers.sort_order, model_providers.created_at
+2026-07-11 14:44:26,403 INFO sqlalchemy.engine.Engine [cached since 0.2467s ago] ('ab1cad03891648439c396c7540f41e87',)
+INFO:     127.0.0.1:64497 - "GET /api/admin/providers HTTP/1.1" 200 OK
+2026-07-11 14:44:26,404 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:26,479 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:26,479 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:26,479 INFO sqlalchemy.engine.Engine [cached since 11.58s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:26,481 INFO sqlalchemy.engine.Engine SELECT model_registry.id, model_registry.provider_id, model_registry.model_name, model_registry.display_name, model_registry.capabilities, model_registry.is_active, model_registry.sort_order, model_registry.created_at 
+FROM model_registry JOIN model_providers ON model_providers.id = model_registry.provider_id 
+WHERE model_providers.tenant_id = ? ORDER BY model_registry.sort_order, model_registry.model_name
+2026-07-11 14:44:26,481 INFO sqlalchemy.engine.Engine [cached since 0.3214s ago] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:44:26,483 INFO sqlalchemy.engine.Engine SELECT model_providers.id, model_providers.tenant_id, model_providers.name, model_providers.provider_type, model_providers.api_key, model_providers.base_url, model_providers.is_active, model_providers.sort_order, model_providers.created_at 
+FROM model_providers 
+WHERE model_providers.id IN (SELECT 1 FROM (SELECT 1) WHERE 1!=1)
+2026-07-11 14:44:26,483 INFO sqlalchemy.engine.Engine [cached since 0.3209s ago] ()
+INFO:     127.0.0.1:61373 - "GET /api/admin/models HTTP/1.1" 200 OK
+2026-07-11 14:44:26,484 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:32,943 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:32,943 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:32,943 INFO sqlalchemy.engine.Engine [cached since 18.04s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:32,945 INFO sqlalchemy.engine.Engine SELECT count(documents.id) AS count_1 
+FROM documents 
+WHERE documents.tenant_id = ?
+2026-07-11 14:44:32,945 INFO sqlalchemy.engine.Engine [cached since 18.04s ago] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:44:32,947 INFO sqlalchemy.engine.Engine SELECT documents.id, documents.tenant_id, documents.name, documents.file_path, documents.content, documents.content_type, documents.file_size, documents.status, documents.error, documents.created_at, documents.updated_at 
+FROM documents 
+WHERE documents.tenant_id = ? ORDER BY documents.created_at DESC
+2026-07-11 14:44:32,947 INFO sqlalchemy.engine.Engine [cached since 18.04s ago] ('ab1cad03891648439c396c7540f41e87',)
+INFO:     127.0.0.1:58442 - "GET /api/knowledge HTTP/1.1" 200 OK
+2026-07-11 14:44:32,948 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:33,255 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:33,255 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:33,255 INFO sqlalchemy.engine.Engine [cached since 18.35s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:33,256 INFO sqlalchemy.engine.Engine SELECT count(documents.id) AS count_1 
+FROM documents 
+WHERE documents.tenant_id = ?
+2026-07-11 14:44:33,257 INFO sqlalchemy.engine.Engine [cached since 18.35s ago] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:44:33,258 INFO sqlalchemy.engine.Engine SELECT documents.id, documents.tenant_id, documents.name, documents.file_path, documents.content, documents.content_type, documents.file_size, documents.status, documents.error, documents.created_at, documents.updated_at 
+FROM documents 
+WHERE documents.tenant_id = ? ORDER BY documents.created_at DESC
+2026-07-11 14:44:33,258 INFO sqlalchemy.engine.Engine [cached since 18.35s ago] ('ab1cad03891648439c396c7540f41e87',)
+INFO:     127.0.0.1:53303 - "GET /api/knowledge HTTP/1.1" 200 OK
+2026-07-11 14:44:33,260 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:35,013 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:35,014 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:35,014 INFO sqlalchemy.engine.Engine [cached since 20.11s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:35,015 INFO sqlalchemy.engine.Engine SELECT count(documents.id) AS count_1 
+FROM documents 
+WHERE documents.tenant_id = ?
+2026-07-11 14:44:35,015 INFO sqlalchemy.engine.Engine [cached since 20.11s ago] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:44:35,017 INFO sqlalchemy.engine.Engine SELECT documents.id, documents.tenant_id, documents.name, documents.file_path, documents.content, documents.content_type, documents.file_size, documents.status, documents.error, documents.created_at, documents.updated_at 
+FROM documents 
+WHERE documents.tenant_id = ? ORDER BY documents.created_at DESC
+2026-07-11 14:44:35,017 INFO sqlalchemy.engine.Engine [cached since 20.11s ago] ('ab1cad03891648439c396c7540f41e87',)
+INFO:     127.0.0.1:51959 - "GET /api/knowledge HTTP/1.1" 200 OK
+2026-07-11 14:44:35,018 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:35,338 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:35,338 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:35,338 INFO sqlalchemy.engine.Engine [cached since 20.43s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:35,339 INFO sqlalchemy.engine.Engine SELECT count(documents.id) AS count_1 
+FROM documents 
+WHERE documents.tenant_id = ?
+2026-07-11 14:44:35,339 INFO sqlalchemy.engine.Engine [cached since 20.43s ago] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:44:35,340 INFO sqlalchemy.engine.Engine SELECT documents.id, documents.tenant_id, documents.name, documents.file_path, documents.content, documents.content_type, documents.file_size, documents.status, documents.error, documents.created_at, documents.updated_at 
+FROM documents 
+WHERE documents.tenant_id = ? ORDER BY documents.created_at DESC
+2026-07-11 14:44:35,340 INFO sqlalchemy.engine.Engine [cached since 20.43s ago] ('ab1cad03891648439c396c7540f41e87',)
+INFO:     127.0.0.1:59212 - "GET /api/knowledge HTTP/1.1" 200 OK
+2026-07-11 14:44:35,341 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:40,908 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:40,908 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:40,908 INFO sqlalchemy.engine.Engine [cached since 26.01s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:40,910 INFO sqlalchemy.engine.Engine SELECT workflow_templates.id, workflow_templates.name, workflow_templates.description, workflow_templates.category, workflow_templates.dag_definition, workflow_templates.icon, workflow_templates.sort_order, workflow_templates.is_builtin, workflow_templates.created_at 
+FROM workflow_templates ORDER BY workflow_templates.sort_order
+2026-07-11 14:44:40,910 INFO sqlalchemy.engine.Engine [cached since 23.23s ago] ()
+INFO:     127.0.0.1:50588 - "GET /api/templates HTTP/1.1" 200 OK
+2026-07-11 14:44:40,911 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:41,219 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:41,219 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:41,219 INFO sqlalchemy.engine.Engine [cached since 26.32s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:41,221 INFO sqlalchemy.engine.Engine SELECT workflow_templates.id, workflow_templates.name, workflow_templates.description, workflow_templates.category, workflow_templates.dag_definition, workflow_templates.icon, workflow_templates.sort_order, workflow_templates.is_builtin, workflow_templates.created_at 
+FROM workflow_templates ORDER BY workflow_templates.sort_order
+2026-07-11 14:44:41,221 INFO sqlalchemy.engine.Engine [cached since 23.54s ago] ()
+INFO:     127.0.0.1:58756 - "GET /api/templates HTTP/1.1" 200 OK
+2026-07-11 14:44:41,222 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:50,301 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:50,301 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:50,301 INFO sqlalchemy.engine.Engine [cached since 35.4s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:50,304 INFO sqlalchemy.engine.Engine INSERT INTO workflows (id, tenant_id, name, description, type, dag_definition, version, status, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2026-07-11 14:44:50,304 INFO sqlalchemy.engine.Engine [generated in 0.00025s] ('ab5f44b73171451b816f504208c63ec5', 'ab1cad03891648439c396c7540f41e87', 'AI 问数', '从模板「AI 问数」创建', 'workflow', '{"nodes": [{"id": "n1", "type": "input", "config": {"fields": [{"name": "question", "type": "text", "label": "\\u8bf7\\u8f93\\u5165\\u60a8\\u7684\\u9 ... (515 characters truncated) ... {"name": "answer", "source": "n2.output"}]}}], "edges": [{"id": "e1", "source": "n1", "target": "n2"}, {"id": "e2", "source": "n2", "target": "n3"}]}', 1, 'draft', '7d4dff26de7a49938dd8423cb7de72ea', '2026-07-11 06:44:50.304982', '2026-07-11 06:44:50.304982')
+INFO:     127.0.0.1:61950 - "POST /api/templates/builtin_AI%20%E9%97%AE%E6%95%B0/instantiate HTTP/1.1" 200 OK
+2026-07-11 14:44:50,307 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:50,562 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:50,562 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:50,562 INFO sqlalchemy.engine.Engine [cached since 35.66s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:50,564 INFO sqlalchemy.engine.Engine SELECT model_registry.id, model_registry.provider_id, model_registry.model_name, model_registry.display_name, model_registry.capabilities, model_registry.is_active, model_registry.sort_order, model_registry.created_at 
+FROM model_registry JOIN model_providers ON model_providers.id = model_registry.provider_id 
+WHERE model_registry.is_active = 1 AND model_providers.tenant_id = ? AND model_providers.is_active = 1 ORDER BY model_registry.sort_order, model_registry.model_name
+2026-07-11 14:44:50,564 INFO sqlalchemy.engine.Engine [generated in 0.00016s] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:44:50,566 INFO sqlalchemy.engine.Engine SELECT model_providers.id, model_providers.tenant_id, model_providers.name, model_providers.provider_type, model_providers.api_key, model_providers.base_url, model_providers.is_active, model_providers.sort_order, model_providers.created_at 
+FROM model_providers 
+WHERE model_providers.id IN (SELECT 1 FROM (SELECT 1) WHERE 1!=1)
+2026-07-11 14:44:50,566 INFO sqlalchemy.engine.Engine [cached since 24.41s ago] ()
+INFO:     127.0.0.1:62303 - "GET /api/admin/models/available HTTP/1.1" 200 OK
+2026-07-11 14:44:50,567 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:50,670 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:50,671 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:50,671 INFO sqlalchemy.engine.Engine [cached since 35.77s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:50,672 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:50,672 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:50,672 INFO sqlalchemy.engine.Engine [cached since 35.77s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:50,673 INFO sqlalchemy.engine.Engine SELECT model_registry.id, model_registry.provider_id, model_registry.model_name, model_registry.display_name, model_registry.capabilities, model_registry.is_active, model_registry.sort_order, model_registry.created_at 
+FROM model_registry JOIN model_providers ON model_providers.id = model_registry.provider_id 
+WHERE model_registry.is_active = 1 AND model_providers.tenant_id = ? AND model_providers.is_active = 1 ORDER BY model_registry.sort_order, model_registry.model_name
+2026-07-11 14:44:50,673 INFO sqlalchemy.engine.Engine [cached since 0.1093s ago] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:44:50,674 INFO sqlalchemy.engine.Engine SELECT workflows.id, workflows.tenant_id, workflows.name, workflows.description, workflows.type, workflows.dag_definition, workflows.version, workflows.status, workflows.created_by, workflows.created_at, workflows.updated_at 
+FROM workflows 
+WHERE workflows.id = ? AND workflows.tenant_id = ?
+2026-07-11 14:44:50,674 INFO sqlalchemy.engine.Engine [generated in 0.00013s] ('ab5f44b73171451b816f504208c63ec5', 'ab1cad03891648439c396c7540f41e87')
+2026-07-11 14:44:50,675 INFO sqlalchemy.engine.Engine SELECT model_providers.id, model_providers.tenant_id, model_providers.name, model_providers.provider_type, model_providers.api_key, model_providers.base_url, model_providers.is_active, model_providers.sort_order, model_providers.created_at 
+FROM model_providers 
+WHERE model_providers.id IN (SELECT 1 FROM (SELECT 1) WHERE 1!=1)
+2026-07-11 14:44:50,675 INFO sqlalchemy.engine.Engine [cached since 24.52s ago] ()
+INFO:     127.0.0.1:53102 - "GET /api/workflows/ab5f44b7-3171-451b-816f-504208c63ec5 HTTP/1.1" 200 OK
+2026-07-11 14:44:50,676 INFO sqlalchemy.engine.Engine COMMIT
+INFO:     127.0.0.1:53104 - "GET /api/admin/models/available HTTP/1.1" 200 OK
+2026-07-11 14:44:50,677 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:44:50,886 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:44:50,887 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:44:50,887 INFO sqlalchemy.engine.Engine [cached since 35.98s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:44:50,888 INFO sqlalchemy.engine.Engine SELECT workflows.id, workflows.tenant_id, workflows.name, workflows.description, workflows.type, workflows.dag_definition, workflows.version, workflows.status, workflows.created_by, workflows.created_at, workflows.updated_at 
+FROM workflows 
+WHERE workflows.id = ? AND workflows.tenant_id = ?
+2026-07-11 14:44:50,888 INFO sqlalchemy.engine.Engine [cached since 0.2132s ago] ('ab5f44b73171451b816f504208c63ec5', 'ab1cad03891648439c396c7540f41e87')
+INFO:     127.0.0.1:61799 - "GET /api/workflows/ab5f44b7-3171-451b-816f-504208c63ec5 HTTP/1.1" 200 OK
+2026-07-11 14:44:50,889 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:47:44,379 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:47:44,380 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:47:44,380 INFO sqlalchemy.engine.Engine [cached since 209.5s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:47:44,380 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:47:44,381 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:47:44,381 INFO sqlalchemy.engine.Engine [cached since 209.5s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:47:44,382 INFO sqlalchemy.engine.Engine SELECT model_registry.id, model_registry.provider_id, model_registry.model_name, model_registry.display_name, model_registry.capabilities, model_registry.is_active, model_registry.sort_order, model_registry.created_at 
+FROM model_registry JOIN model_providers ON model_providers.id = model_registry.provider_id 
+WHERE model_registry.is_active = 1 AND model_providers.tenant_id = ? AND model_providers.is_active = 1 ORDER BY model_registry.sort_order, model_registry.model_name
+2026-07-11 14:47:44,382 INFO sqlalchemy.engine.Engine [cached since 173.8s ago] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:47:44,383 INFO sqlalchemy.engine.Engine SELECT workflows.id, workflows.tenant_id, workflows.name, workflows.description, workflows.type, workflows.dag_definition, workflows.version, workflows.status, workflows.created_by, workflows.created_at, workflows.updated_at 
+FROM workflows 
+WHERE workflows.id = ? AND workflows.tenant_id = ?
+2026-07-11 14:47:44,383 INFO sqlalchemy.engine.Engine [cached since 173.7s ago] ('ab5f44b73171451b816f504208c63ec5', 'ab1cad03891648439c396c7540f41e87')
+2026-07-11 14:47:44,384 INFO sqlalchemy.engine.Engine SELECT model_providers.id, model_providers.tenant_id, model_providers.name, model_providers.provider_type, model_providers.api_key, model_providers.base_url, model_providers.is_active, model_providers.sort_order, model_providers.created_at 
+FROM model_providers 
+WHERE model_providers.id IN (SELECT 1 FROM (SELECT 1) WHERE 1!=1)
+2026-07-11 14:47:44,385 INFO sqlalchemy.engine.Engine [cached since 198.2s ago] ()
+INFO:     127.0.0.1:62098 - "GET /api/workflows/ab5f44b7-3171-451b-816f-504208c63ec5 HTTP/1.1" 200 OK
+2026-07-11 14:47:44,386 INFO sqlalchemy.engine.Engine COMMIT
+INFO:     127.0.0.1:62097 - "GET /api/admin/models/available HTTP/1.1" 200 OK
+2026-07-11 14:47:44,386 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:47:44,390 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:47:44,390 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:47:44,390 INFO sqlalchemy.engine.Engine [cached since 209.5s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:47:44,392 INFO sqlalchemy.engine.Engine SELECT workflows.id, workflows.tenant_id, workflows.name, workflows.description, workflows.type, workflows.dag_definition, workflows.version, workflows.status, workflows.created_by, workflows.created_at, workflows.updated_at 
+FROM workflows 
+WHERE workflows.id = ? AND workflows.tenant_id = ?
+2026-07-11 14:47:44,392 INFO sqlalchemy.engine.Engine [cached since 173.7s ago] ('ab5f44b73171451b816f504208c63ec5', 'ab1cad03891648439c396c7540f41e87')
+INFO:     127.0.0.1:49940 - "GET /api/workflows/ab5f44b7-3171-451b-816f-504208c63ec5 HTTP/1.1" 200 OK
+2026-07-11 14:47:44,393 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:47:44,702 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:47:44,702 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:47:44,702 INFO sqlalchemy.engine.Engine [cached since 209.8s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:47:44,704 INFO sqlalchemy.engine.Engine SELECT model_registry.id, model_registry.provider_id, model_registry.model_name, model_registry.display_name, model_registry.capabilities, model_registry.is_active, model_registry.sort_order, model_registry.created_at 
+FROM model_registry JOIN model_providers ON model_providers.id = model_registry.provider_id 
+WHERE model_registry.is_active = 1 AND model_providers.tenant_id = ? AND model_providers.is_active = 1 ORDER BY model_registry.sort_order, model_registry.model_name
+2026-07-11 14:47:44,704 INFO sqlalchemy.engine.Engine [cached since 174.2s ago] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:47:44,705 INFO sqlalchemy.engine.Engine SELECT model_providers.id, model_providers.tenant_id, model_providers.name, model_providers.provider_type, model_providers.api_key, model_providers.base_url, model_providers.is_active, model_providers.sort_order, model_providers.created_at 
+FROM model_providers 
+WHERE model_providers.id IN (SELECT 1 FROM (SELECT 1) WHERE 1!=1)
+2026-07-11 14:47:44,705 INFO sqlalchemy.engine.Engine [cached since 198.6s ago] ()
+INFO:     127.0.0.1:56062 - "GET /api/admin/models/available HTTP/1.1" 200 OK
+2026-07-11 14:47:44,706 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:47:53,355 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:47:53,356 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:47:53,356 INFO sqlalchemy.engine.Engine [cached since 218.5s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:47:53,357 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:47:53,357 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:47:53,357 INFO sqlalchemy.engine.Engine [cached since 218.5s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:47:53,369 INFO sqlalchemy.engine.Engine SELECT model_registry.id, model_registry.provider_id, model_registry.model_name, model_registry.display_name, model_registry.capabilities, model_registry.is_active, model_registry.sort_order, model_registry.created_at 
+FROM model_registry JOIN model_providers ON model_providers.id = model_registry.provider_id 
+WHERE model_registry.is_active = 1 AND model_providers.tenant_id = ? AND model_providers.is_active = 1 ORDER BY model_registry.sort_order, model_registry.model_name
+2026-07-11 14:47:53,369 INFO sqlalchemy.engine.Engine [cached since 182.8s ago] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:47:53,370 INFO sqlalchemy.engine.Engine SELECT workflows.id, workflows.tenant_id, workflows.name, workflows.description, workflows.type, workflows.dag_definition, workflows.version, workflows.status, workflows.created_by, workflows.created_at, workflows.updated_at 
+FROM workflows 
+WHERE workflows.id = ? AND workflows.tenant_id = ?
+2026-07-11 14:47:53,370 INFO sqlalchemy.engine.Engine [cached since 182.7s ago] ('ab5f44b73171451b816f504208c63ec5', 'ab1cad03891648439c396c7540f41e87')
+2026-07-11 14:47:53,371 INFO sqlalchemy.engine.Engine SELECT model_providers.id, model_providers.tenant_id, model_providers.name, model_providers.provider_type, model_providers.api_key, model_providers.base_url, model_providers.is_active, model_providers.sort_order, model_providers.created_at 
+FROM model_providers 
+WHERE model_providers.id IN (SELECT 1 FROM (SELECT 1) WHERE 1!=1)
+2026-07-11 14:47:53,372 INFO sqlalchemy.engine.Engine [cached since 207.2s ago] ()
+INFO:     127.0.0.1:62597 - "GET /api/workflows/ab5f44b7-3171-451b-816f-504208c63ec5 HTTP/1.1" 200 OK
+2026-07-11 14:47:53,372 INFO sqlalchemy.engine.Engine COMMIT
+INFO:     127.0.0.1:62595 - "GET /api/admin/models/available HTTP/1.1" 200 OK
+2026-07-11 14:47:53,374 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:47:53,378 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:47:53,378 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:47:53,378 INFO sqlalchemy.engine.Engine [cached since 218.5s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:47:53,379 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:47:53,379 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:47:53,379 INFO sqlalchemy.engine.Engine [cached since 218.5s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:47:53,380 INFO sqlalchemy.engine.Engine SELECT workflows.id, workflows.tenant_id, workflows.name, workflows.description, workflows.type, workflows.dag_definition, workflows.version, workflows.status, workflows.created_by, workflows.created_at, workflows.updated_at 
+FROM workflows 
+WHERE workflows.id = ? AND workflows.tenant_id = ?
+2026-07-11 14:47:53,380 INFO sqlalchemy.engine.Engine [cached since 182.7s ago] ('ab5f44b73171451b816f504208c63ec5', 'ab1cad03891648439c396c7540f41e87')
+2026-07-11 14:47:53,380 INFO sqlalchemy.engine.Engine SELECT model_registry.id, model_registry.provider_id, model_registry.model_name, model_registry.display_name, model_registry.capabilities, model_registry.is_active, model_registry.sort_order, model_registry.created_at 
+FROM model_registry JOIN model_providers ON model_providers.id = model_registry.provider_id 
+WHERE model_registry.is_active = 1 AND model_providers.tenant_id = ? AND model_providers.is_active = 1 ORDER BY model_registry.sort_order, model_registry.model_name
+2026-07-11 14:47:53,380 INFO sqlalchemy.engine.Engine [cached since 182.8s ago] ('ab1cad03891648439c396c7540f41e87',)
+INFO:     127.0.0.1:62599 - "GET /api/workflows/ab5f44b7-3171-451b-816f-504208c63ec5 HTTP/1.1" 200 OK
+2026-07-11 14:47:53,382 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:47:53,383 INFO sqlalchemy.engine.Engine SELECT model_providers.id, model_providers.tenant_id, model_providers.name, model_providers.provider_type, model_providers.api_key, model_providers.base_url, model_providers.is_active, model_providers.sort_order, model_providers.created_at 
+FROM model_providers 
+WHERE model_providers.id IN (SELECT 1 FROM (SELECT 1) WHERE 1!=1)
+2026-07-11 14:47:53,383 INFO sqlalchemy.engine.Engine [cached since 207.2s ago] ()
+INFO:     127.0.0.1:62601 - "GET /api/admin/models/available HTTP/1.1" 200 OK
+2026-07-11 14:47:53,384 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:47:56,401 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:47:56,401 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:47:56,401 INFO sqlalchemy.engine.Engine [cached since 221.5s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:47:56,402 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:47:56,402 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:47:56,402 INFO sqlalchemy.engine.Engine [cached since 221.5s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:47:56,405 INFO sqlalchemy.engine.Engine SELECT model_registry.id, model_registry.provider_id, model_registry.model_name, model_registry.display_name, model_registry.capabilities, model_registry.is_active, model_registry.sort_order, model_registry.created_at 
+FROM model_registry JOIN model_providers ON model_providers.id = model_registry.provider_id 
+WHERE model_registry.is_active = 1 AND model_providers.tenant_id = ? AND model_providers.is_active = 1 ORDER BY model_registry.sort_order, model_registry.model_name
+2026-07-11 14:47:56,405 INFO sqlalchemy.engine.Engine [cached since 185.9s ago] ('ab1cad03891648439c396c7540f41e87',)
+2026-07-11 14:47:56,406 INFO sqlalchemy.engine.Engine SELECT workflows.id, workflows.tenant_id, workflows.name, workflows.description, workflows.type, workflows.dag_definition, workflows.version, workflows.status, workflows.created_by, workflows.created_at, workflows.updated_at 
+FROM workflows 
+WHERE workflows.id = ? AND workflows.tenant_id = ?
+2026-07-11 14:47:56,406 INFO sqlalchemy.engine.Engine [cached since 185.8s ago] ('ab5f44b73171451b816f504208c63ec5', 'ab1cad03891648439c396c7540f41e87')
+2026-07-11 14:47:56,408 INFO sqlalchemy.engine.Engine SELECT model_providers.id, model_providers.tenant_id, model_providers.name, model_providers.provider_type, model_providers.api_key, model_providers.base_url, model_providers.is_active, model_providers.sort_order, model_providers.created_at 
+FROM model_providers 
+WHERE model_providers.id IN (SELECT 1 FROM (SELECT 1) WHERE 1!=1)
+2026-07-11 14:47:56,408 INFO sqlalchemy.engine.Engine [cached since 210.3s ago] ()
+INFO:     127.0.0.1:51728 - "GET /api/workflows/ab5f44b7-3171-451b-816f-504208c63ec5 HTTP/1.1" 200 OK
+2026-07-11 14:47:56,409 INFO sqlalchemy.engine.Engine COMMIT
+INFO:     127.0.0.1:51727 - "GET /api/admin/models/available HTTP/1.1" 200 OK
+2026-07-11 14:47:56,412 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:47:56,416 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:47:56,417 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:47:56,417 INFO sqlalchemy.engine.Engine [cached since 221.5s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:47:56,418 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-07-11 14:47:56,419 INFO sqlalchemy.engine.Engine SELECT users.id, users.tenant_id, users.email, users.password_hash, users.display_name, users.role, users.is_active, users.created_at 
+FROM users 
+WHERE users.id = ?
+2026-07-11 14:47:56,419 INFO sqlalchemy.engine.Engine [cached since 221.5s ago] ('7d4dff26de7a49938dd8423cb7de72ea',)
+2026-07-11 14:47:56,420 INFO sqlalchemy.engine.Engine SELECT workflows.id, workflows.tenant_id, workflows.name, workflows.description, workflows.type, workflows.dag_definition, workflows.version, workflows.status, workflows.created_by, workflows.created_at, workflows.updated_at 
+FROM workflows 
+WHERE workflows.id = ? AND workflows.tenant_id = ?
+2026-07-11 14:47:56,421 INFO sqlalchemy.engine.Engine [cached since 185.8s ago] ('ab5f44b73171451b816f504208c63ec5', 'ab1cad03891648439c396c7540f41e87')
+2026-07-11 14:47:56,422 INFO sqlalchemy.engine.Engine SELECT model_registry.id, model_registry.provider_id, model_registry.model_name, model_registry.display_name, model_registry.capabilities, model_registry.is_active, model_registry.sort_order, model_registry.created_at 
+FROM model_registry JOIN model_providers ON model_providers.id = model_registry.provider_id 
+WHERE model_registry.is_active = 1 AND model_providers.tenant_id = ? AND model_providers.is_active = 1 ORDER BY model_registry.sort_order, model_registry.model_name
+2026-07-11 14:47:56,422 INFO sqlalchemy.engine.Engine [cached since 185.9s ago] ('ab1cad03891648439c396c7540f41e87',)
+INFO:     127.0.0.1:51730 - "GET /api/workflows/ab5f44b7-3171-451b-816f-504208c63ec5 HTTP/1.1" 200 OK
+2026-07-11 14:47:56,423 INFO sqlalchemy.engine.Engine COMMIT
+2026-07-11 14:47:56,425 INFO sqlalchemy.engine.Engine SELECT model_providers.id, model_providers.tenant_id, model_providers.name, model_providers.provider_type, model_providers.api_key, model_providers.base_url, model_providers.is_active, model_providers.sort_order, model_providers.created_at 
+FROM model_providers 
+WHERE model_providers.id IN (SELECT 1 FROM (SELECT 1) WHERE 1!=1)
+2026-07-11 14:47:56,426 INFO sqlalchemy.engine.Engine [cached since 210.3s ago] ()
+INFO:     127.0.0.1:51732 - "GET /api/admin/models/available HTTP/1.1" 200 OK
+2026-07-11 14:47:56,427 INFO sqlalchemy.engine.Engine COMMIT

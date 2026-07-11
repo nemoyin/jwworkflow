@@ -12,6 +12,7 @@ import IfElseNode from './IfElseNode';
 import CodeNode from './CodeNode';
 import VariableAggregatorNode from './VariableAggregatorNode';
 import AgentNode from './AgentNode';
+import DocExtractorNode from './DocExtractorNode';
 
 export {
   LLMNode,
@@ -45,7 +46,7 @@ export const nodeTypes: NodeTypes = {
   'http-request': HttpRequestNode,
   'human-input': HumanInputNode,
   iteration: IterationNode,
-  'doc-extractor': InputNode, // uses InputNode for basic file-IO display
+  'doc-extractor': DocExtractorNode,
   'variable-aggregator': VariableAggregatorNode,
   agent: AgentNode,
 };

@@ -27,6 +27,9 @@ services:
       DATABASE_URL: postgresql+psycopg2://postgres:postgres@postgres:5432/jwworkflow
       JWT_SECRET: dev-secret-do-not-use-in-production
       DEBUG: "true"
+      LLM_API_KEY: sk-dc42126e667a4e899fa68fc3f70b00b7
+      LLM_BASE_URL: https://api.deepseek.com
+      LLM_DEFAULT_MODEL: deepseek-v4-pro
     volumes:
       - ./backend:/app
       - data:/app/data
