@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { Node, Edge, applyNodeChanges, applyEdgeChanges, Connection, addEdge } from 'reactflow';
 import { api } from '../services/api';
 
+export type ExecutionStatus = 'idle' | 'running' | 'completed' | 'error';
+export type ExecutionNodeState = 'pending' | 'running' | 'completed' | 'error';
+
 interface WorkflowState {
   nodes: Node[];
   edges: Edge[];
@@ -9,15 +12,34 @@ interface WorkflowState {
   workflowId: string | null;
   workflowName: string;
 
-  onNodesChange: (changes: any) => void;
-  onEdgesChange: (changes: any) => void;
+  // Execution state
+  executionStatus: ExecutionStatus;
+  nodeExecutionStates: Record<string, ExecutionNodeState>;
+  executionNodeResults: Record<string, unknown>;
+  executionErrors: Record<string, string>;
+  executionFinalOutput: unknown;
+
+  // Node/edge actions
+  onNodesChange: (changes: any[]) => void;
+  onEdgesChange: (changes: any[]) => void;
   onConnect: (connection: Connection) => void;
   addNode: (type: string, position: { x: number; y: number }) => void;
   selectNode: (node: Node | null) => void;
-  updateNodeConfig: (nodeId: string, config: any) => void;
+  updateNodeConfig: (nodeId: string, config: Record<string, any>) => void;
   loadWorkflow: (id: string) => Promise<void>;
   saveWorkflow: () => Promise<void>;
-  executeWorkflow: (inputs: any) => Promise<any>;
+  executeWorkflow: (inputs: Record<string, any>) => Promise<void>;
+
+  // Execution actions
+  setExecutionStatus: (status: ExecutionStatus) => void;
+  setNodeExecutionState: (
+    nodeId: string,
+    state: ExecutionNodeState,
+    output?: unknown,
+    error?: string
+  ) => void;
+  setExecutionFinalOutput: (output: unknown) => void;
+  resetExecution: () => void;
 }
 
 export const useWorkflowStore = create<WorkflowState>((set, get) => ({
@@ -27,8 +49,19 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   workflowId: null,
   workflowName: '',
 
+  // Initial execution state
+  executionStatus: 'idle',
+  nodeExecutionStates: {},
+  executionNodeResults: {},
+  executionErrors: {},
+  executionFinalOutput: null,
+
+  // --- Node/edge actions ---
+
   onNodesChange: (changes) => set({ nodes: applyNodeChanges(changes, get().nodes) }),
+
   onEdgesChange: (changes) => set({ edges: applyEdgeChanges(changes, get().edges) }),
+
   onConnect: (connection) => set({ edges: addEdge(connection, get().edges) }),
 
   addNode: (type, position) => {
@@ -79,7 +112,78 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   executeWorkflow: async (inputs) => {
     const { workflowId } = get();
     if (!workflowId) throw new Error('请先保存工作流');
-    const res: any = await api.post(`/workflows/${workflowId}/run`, inputs);
-    return res.result;
+
+    // Reset execution state and mark as running
+    set({
+      executionStatus: 'running',
+      nodeExecutionStates: {},
+      executionNodeResults: {},
+      executionErrors: {},
+      executionFinalOutput: null,
+      // Clear execution state from node data
+      nodes: get().nodes.map((n) => {
+        const { executionState: _es, ...restData } = n.data as Record<string, any>;
+        return { ...n, data: restData };
+      }),
+    });
+
+    // POST to trigger backend execution; SSE stream will pick up events
+    await api.post(`/workflows/${workflowId}/run`, inputs);
+  },
+
+  // --- Execution actions ---
+
+  setExecutionStatus: (status) => set({ executionStatus: status }),
+
+  setNodeExecutionState: (nodeId, state, output, error) => {
+    set((prev) => {
+      // Update the node's data so React Flow re-renders it with execution state
+      const updatedNodes = prev.nodes.map((n) =>
+        n.id === nodeId
+          ? { ...n, data: { ...n.data, executionState: state } }
+          : n
+      );
+
+      const patch: Partial<WorkflowState> = {
+        nodes: updatedNodes,
+        nodeExecutionStates: {
+          ...prev.nodeExecutionStates,
+          [nodeId]: state,
+        },
+      };
+
+      if (output !== undefined) {
+        patch.executionNodeResults = {
+          ...prev.executionNodeResults,
+          [nodeId]: output,
+        };
+      }
+
+      if (error !== undefined) {
+        patch.executionErrors = {
+          ...prev.executionErrors,
+          [nodeId]: error,
+        };
+      }
+
+      return patch;
+    });
+  },
+
+  setExecutionFinalOutput: (output) => set({ executionFinalOutput: output }),
+
+  resetExecution: () => {
+    set((prev) => ({
+      executionStatus: 'idle',
+      nodeExecutionStates: {},
+      executionNodeResults: {},
+      executionErrors: {},
+      executionFinalOutput: null,
+      // Remove execution state from node data
+      nodes: prev.nodes.map((n) => {
+        const { executionState: _es, ...restData } = n.data as Record<string, any>;
+        return { ...n, data: restData };
+      }),
+    }));
   },
 }));

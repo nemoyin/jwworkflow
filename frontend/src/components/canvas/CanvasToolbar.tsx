@@ -12,7 +12,13 @@ import { useWorkflowStore } from '../../stores/workflowStore';
 
 const CanvasToolbar: React.FC = () => {
   const reactFlowInstance = useReactFlow();
-  const { saveWorkflow, executeWorkflow, workflowName } = useWorkflowStore();
+  const {
+    saveWorkflow,
+    executeWorkflow,
+    workflowName,
+    executionStatus,
+  } = useWorkflowStore();
+  const isRunning = executionStatus === 'running';
 
   const handleZoomIn = useCallback(() => {
     reactFlowInstance.zoomIn();
@@ -36,13 +42,14 @@ const CanvasToolbar: React.FC = () => {
   }, [saveWorkflow]);
 
   const handleRun = useCallback(async () => {
+    if (isRunning) return;
     try {
       await executeWorkflow({});
-      message.success('执行成功');
-    } catch (err: any) {
-      message.error(err.message || '执行失败');
+      // Execution state is managed by SSE events; no immediate success message
+    } catch (err: unknown) {
+      message.error((err as Error).message || '执行失败');
     }
-  }, [executeWorkflow]);
+  }, [executeWorkflow, isRunning]);
 
   return (
     <div
@@ -55,13 +62,20 @@ const CanvasToolbar: React.FC = () => {
         background: '#fff',
       }}
     >
-      <span style={{ fontWeight: 600 }}>{workflowName || '工作流编辑器'}</span>
+      <span style={{ fontWeight: 600 }}>
+        {workflowName || '工作流编辑器'}
+      </span>
       <Space>
         <Button icon={<SaveOutlined />} onClick={handleSave}>
           保存
         </Button>
-        <Button type="primary" icon={<PlayCircleOutlined />} onClick={handleRun}>
-          运行
+        <Button
+          type="primary"
+          icon={<PlayCircleOutlined />}
+          onClick={handleRun}
+          loading={isRunning}
+        >
+          {isRunning ? '运行中...' : '运行'}
         </Button>
         <Button icon={<ZoomInOutlined />} onClick={handleZoomIn} />
         <Button icon={<ZoomOutOutlined />} onClick={handleZoomOut} />
