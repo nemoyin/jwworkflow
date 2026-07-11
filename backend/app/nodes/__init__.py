@@ -7,6 +7,10 @@ from app.nodes.output_node import OutputNodeExecutor
 from app.nodes.if_else import IfElseNodeExecutor
 from app.nodes.iteration import IterationNodeExecutor
 from app.nodes.variable_aggregator import VariableAggregatorNode
+from app.nodes.code_executor import CodeNodeExecutor
+from app.nodes.http_request import HttpRequestNodeExecutor
+from app.nodes.doc_extractor import DocExtractorNodeExecutor
+from app.nodes.human_input import HumanInputNodeExecutor
 
 # 注册所有内置节点
 register_node(NODE_REGISTRY, "input", InputNodeExecutor)
@@ -16,10 +20,16 @@ register_node(NODE_REGISTRY, "output", OutputNodeExecutor)
 register_node(NODE_REGISTRY, "if-else", IfElseNodeExecutor)
 register_node(NODE_REGISTRY, "iteration", IterationNodeExecutor)
 register_node(NODE_REGISTRY, "variable-aggregator", VariableAggregatorNode)
+register_node(NODE_REGISTRY, "code", CodeNodeExecutor)
+register_node(NODE_REGISTRY, "http-request", HttpRequestNodeExecutor)
+register_node(NODE_REGISTRY, "doc-extractor", DocExtractorNodeExecutor)
+register_node(NODE_REGISTRY, "human-input", HumanInputNodeExecutor)
 
 __all__ = [
     "BaseNodeExecutor", "NODE_REGISTRY", "register_node", "get_node",
     "InputNodeExecutor", "LLMNodeExecutor",
     "TemplateNodeExecutor", "OutputNodeExecutor",
     "IfElseNodeExecutor", "IterationNodeExecutor", "VariableAggregatorNode",
+    "CodeNodeExecutor", "HttpRequestNodeExecutor",
+    "DocExtractorNodeExecutor", "HumanInputNodeExecutor",
 ]
