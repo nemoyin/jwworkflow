@@ -149,34 +149,43 @@ class AgentNodeExecutor(BaseNodeExecutor):
         tools: list[dict] | None,
         temperature: float,
     ) -> dict:
-        """通过 DeepSeek API 调用真实 LLM"""
-        import asyncio
+        """通过 DeepSeek API 调用真实 LLM（同步方式）"""
+        from app.nodes.llm_node import _sync_chat_completion
+        from openai import OpenAI
+        from app.config import settings
 
         try:
-            content, tool_calls = asyncio.run(
-                chat_completion_with_tools(
-                    messages=conversation,
-                    tools=tools,
-                    model=model,
-                    temperature=temperature,
-                )
+            client = OpenAI(
+                api_key=settings.LLM_API_KEY,
+                base_url=settings.LLM_BASE_URL,
             )
+            kwargs = {
+                "model": model or settings.LLM_DEFAULT_MODEL,
+                "messages": conversation,
+                "temperature": temperature,
+                "max_tokens": 4096,
+            }
+            if tools:
+                kwargs["tools"] = tools
+
+            response = client.chat.completions.create(**kwargs)
+            message = response.choices[0].message
+            content = message.content or ""
+
+            if message.tool_calls:
+                tc = message.tool_calls[0]
+                try:
+                    args = json.loads(tc.function.arguments)
+                except (json.JSONDecodeError, KeyError):
+                    args = {}
+                return {
+                    "type": "tool_call",
+                    "tool": tc.function.name,
+                    "arguments": args,
+                }
+            return {"type": "final_answer", "content": content}
         except Exception as e:
             return {"type": "final_answer", "content": f"[LLM Error] {str(e)}"}
-
-        if tool_calls:
-            tc = tool_calls[0]  # 每次只处理一个工具调用
-            try:
-                args = json.loads(tc["function"]["arguments"])
-            except (json.JSONDecodeError, KeyError):
-                args = {}
-            return {
-                "type": "tool_call",
-                "tool": tc["function"]["name"],
-                "arguments": args,
-            }
-
-        return {"type": "final_answer", "content": content or ""}
 
     # ------------------------------------------------------------------
     # Prompt building

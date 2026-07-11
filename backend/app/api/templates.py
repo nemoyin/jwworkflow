@@ -53,7 +53,7 @@ BUILTIN_TEMPLATES: list[dict] = [
                 },
                 {
                     "id": "n2",
-                    "type": "knowledge_retrieval",
+                    "type": "knowledge-retrieval",
                     "config": {
                         "query": "{{ input.tender_doc }}",
                         "top_k": 5,
