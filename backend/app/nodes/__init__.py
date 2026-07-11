@@ -11,6 +11,7 @@ from app.nodes.code_executor import CodeNodeExecutor
 from app.nodes.http_request import HttpRequestNodeExecutor
 from app.nodes.doc_extractor import DocExtractorNodeExecutor
 from app.nodes.human_input import HumanInputNodeExecutor
+from app.nodes.knowledge_node import KnowledgeRetrievalNodeExecutor
 
 # 注册所有内置节点
 register_node(NODE_REGISTRY, "input", InputNodeExecutor)
@@ -24,6 +25,7 @@ register_node(NODE_REGISTRY, "code", CodeNodeExecutor)
 register_node(NODE_REGISTRY, "http-request", HttpRequestNodeExecutor)
 register_node(NODE_REGISTRY, "doc-extractor", DocExtractorNodeExecutor)
 register_node(NODE_REGISTRY, "human-input", HumanInputNodeExecutor)
+register_node(NODE_REGISTRY, "knowledge-retrieval", KnowledgeRetrievalNodeExecutor)
 
 __all__ = [
     "BaseNodeExecutor", "NODE_REGISTRY", "register_node", "get_node",
@@ -32,4 +34,5 @@ __all__ = [
     "IfElseNodeExecutor", "IterationNodeExecutor", "VariableAggregatorNode",
     "CodeNodeExecutor", "HttpRequestNodeExecutor",
     "DocExtractorNodeExecutor", "HumanInputNodeExecutor",
+    "KnowledgeRetrievalNodeExecutor",
 ]

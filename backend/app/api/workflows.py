@@ -164,7 +164,7 @@ async def run_workflow(
         nodes=wf.dag_definition.get("nodes", []),
         edges=wf.dag_definition.get("edges", []),
     )
-    executor = WorkflowExecutor(dag, NODE_REGISTRY)
+    executor = WorkflowExecutor(dag, NODE_REGISTRY, db=db, tenant_id=current_user.tenant_id)
 
     start_time = time.time()
     try:

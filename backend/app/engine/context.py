@@ -7,9 +7,11 @@ class ExecutionContext:
 
     VARIABLE_PATTERN = re.compile(r"\{\{\s*([^}]+)\s*\}\}")
 
-    def __init__(self, inputs: dict):
+    def __init__(self, inputs: dict, db=None, tenant_id=None):
         self._inputs = inputs
         self._outputs: dict[str, dict] = {}
+        self.db = db
+        self.tenant_id = tenant_id
 
     @property
     def inputs(self) -> dict:

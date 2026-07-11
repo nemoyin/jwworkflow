@@ -24,11 +24,23 @@ class WorkflowExecutor:
         The DAG to execute.
     node_registry : dict[str, type[BaseNodeExecutor]]
         Mapping from node type string to executor class.
+    db : AsyncSession, optional
+        Database session for nodes that need data access (e.g. knowledge retrieval).
+    tenant_id : any, optional
+        Tenant identifier for multi-tenant isolation.
     """
 
-    def __init__(self, dag: WorkflowDag, node_registry: dict[str, type[BaseNodeExecutor]]):
+    def __init__(
+        self,
+        dag: WorkflowDag,
+        node_registry: dict[str, type[BaseNodeExecutor]],
+        db=None,
+        tenant_id=None,
+    ):
         self.dag = dag
         self.node_registry = node_registry
+        self._db = db
+        self._tenant_id = tenant_id
         self._events: list[SSEEvent] = []
 
     def execute(self, inputs: dict) -> dict:
@@ -43,7 +55,7 @@ class WorkflowExecutor:
         Raises:
             ValueError: 遇到未知节点类型
         """
-        ctx = ExecutionContext(inputs)
+        ctx = ExecutionContext(inputs, db=self._db, tenant_id=self._tenant_id)
         self._add_event("workflow_start", {"inputs": inputs})
 
         try:
