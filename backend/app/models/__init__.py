@@ -4,5 +4,9 @@ from app.models.workflow import Workflow
 from app.models.run import Run
 from app.models.document import Document
 from app.models.embedding import Embedding
+from app.models.conversation import Conversation, Message
 
-__all__ = ["Tenant", "User", "Workflow", "Run", "Document", "Embedding"]
+__all__ = [
+    "Tenant", "User", "Workflow", "Run", "Document", "Embedding",
+    "Conversation", "Message",
+]

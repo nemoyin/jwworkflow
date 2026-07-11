@@ -81,7 +81,7 @@ async def _setup_database(event_loop):
     ``Base.metadata`` before ``create_all`` is called.
     """
     from app.database import Base, engine
-    from app.models import Tenant, User, Workflow, Run, Document  # noqa: F401 — register on metadata
+    from app.models import Tenant, User, Workflow, Run, Document, Embedding, Conversation, Message  # noqa: F401 — register on metadata
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

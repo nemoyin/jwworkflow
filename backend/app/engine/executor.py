@@ -43,11 +43,14 @@ class WorkflowExecutor:
         self._tenant_id = tenant_id
         self._events: list[SSEEvent] = []
 
-    def execute(self, inputs: dict) -> dict:
+    def execute(self, inputs: dict, context: ExecutionContext = None) -> dict:
         """同步执行工作流
 
         Args:
             inputs: 工作流输入参数字典
+            context: 可选的执行上下文实例。当在 chatflow 多轮对话场景中使用时，
+                     传入 ``ChatExecutionContext`` 以保留跨轮变量。
+                     为 None 时自动创建新的 ``ExecutionContext``。
 
         Returns:
             输出节点返回的结果字典（若没有输出节点则返回空字典）
@@ -55,7 +58,7 @@ class WorkflowExecutor:
         Raises:
             ValueError: 遇到未知节点类型
         """
-        ctx = ExecutionContext(inputs, db=self._db, tenant_id=self._tenant_id)
+        ctx = context or ExecutionContext(inputs, db=self._db, tenant_id=self._tenant_id)
         self._add_event("workflow_start", {"inputs": inputs})
 
         try:
