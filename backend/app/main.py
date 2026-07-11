@@ -10,6 +10,7 @@ from app.api import knowledge as knowledge_router
 from app.api import conversations as conversations_router
 from app.api import templates as templates_router
 from app.api import models as models_router
+from app.api import admin as admin_router
 from app.config import settings
 from app.database import engine, Base
 
@@ -47,6 +48,7 @@ app.include_router(knowledge_router.router)
 app.include_router(conversations_router.router)
 app.include_router(templates_router.router)
 app.include_router(models_router.router)
+app.include_router(admin_router.router)
 
 
 @app.get("/health")

@@ -8,6 +8,7 @@ import RunHistoryPage from "./pages/RunHistoryPage"
 import KnowledgePage from "./pages/KnowledgePage"
 import TemplateMarketPage from "./pages/TemplateMarketPage"
 import ModelManagementPage from "./pages/ModelManagementPage"
+import AdminDashboard from "./pages/AdminDashboard"
 import AuthGuard from "./components/layout/AuthGuard"
 import AppLayout from "./components/layout/AppLayout"
 
@@ -27,6 +28,7 @@ const App = () => {
               <Route path="/history" element={<RunHistoryPage />} />
               <Route path="/templates" element={<TemplateMarketPage />} />
               <Route path="/admin/models" element={<ModelManagementPage />} />
+              <Route path="/admin" element={<AdminDashboard />} />
             </Route>
           </Route>
         </Routes>
