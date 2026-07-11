@@ -478,13 +478,137 @@ const NodeConfigPanel: React.FC = () => {
             </div>
             <div style={{ marginBottom: 12 }}>
               <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
-                提取字段
+                文件路径
+              </Text>
+              <Input
+                size="small"
+                placeholder="例如: /path/to/document.pdf"
+                value={config.file_path || ''}
+                onChange={(e) => updateConfig('file_path', e.target.value)}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                提取字段（逗号分隔）
               </Text>
               <Input
                 size="small"
                 placeholder="例如: title, content"
                 value={config.extract_fields || ''}
                 onChange={(e) => updateConfig('extract_fields', e.target.value)}
+              />
+            </div>
+          </>
+        );
+
+      case 'variable-aggregator':
+        return (
+          <>
+            <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                源分支配置 (JSON)
+              </Text>
+              <TextArea
+                size="small"
+                rows={6}
+                placeholder={JSON.stringify(
+                  [
+                    { node_id: 'node_xxx', alias: 'branch_a' },
+                    { node_id: 'node_yyy', alias: 'branch_b' },
+                  ],
+                  null,
+                  2
+                )}
+                value={(() => {
+                  try {
+                    return JSON.stringify(config.sources || [], null, 2);
+                  } catch {
+                    return '';
+                  }
+                })()}
+                onChange={(e) => {
+                  try {
+                    const parsed = JSON.parse(e.target.value);
+                    if (Array.isArray(parsed)) {
+                      updateConfig('sources', parsed);
+                    }
+                  } catch {
+                    // Allow editing even when JSON is incomplete
+                  }
+                }}
+                style={{ fontFamily: 'monospace', fontSize: 12 }}
+              />
+              <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                每个分支需指定 node_id（上游节点 ID）和 alias（聚合后的字段名）
+              </Text>
+            </div>
+          </>
+        );
+
+      case 'agent':
+        return (
+          <>
+            <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                模型
+              </Text>
+              <Select
+                size="small"
+                style={{ width: '100%' }}
+                value={config.model || 'gpt-4o'}
+                onChange={(v) => updateConfig('model', v)}
+                options={[
+                  { value: 'gpt-4o', label: 'GPT-4o' },
+                  { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+                  { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet' },
+                  { value: 'claude-3-haiku', label: 'Claude 3 Haiku' },
+                  { value: 'deepseek-chat', label: 'DeepSeek Chat' },
+                  { value: 'qwen-max', label: '通义千问 Max' },
+                ]}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                系统提示词
+              </Text>
+              <TextArea
+                size="small"
+                rows={4}
+                placeholder="Agent 系统提示词..."
+                value={config.system_prompt || ''}
+                onChange={(e) => updateConfig('system_prompt', e.target.value)}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+                工具配置 (JSON)
+              </Text>
+              <TextArea
+                size="small"
+                rows={5}
+                placeholder={JSON.stringify(
+                  [{ name: 'search', description: '搜索工具', parameters: {} }],
+                  null,
+                  2
+                )}
+                value={(() => {
+                  try {
+                    return JSON.stringify(config.tools || [], null, 2);
+                  } catch {
+                    return '';
+                  }
+                })()}
+                onChange={(e) => {
+                  try {
+                    const parsed = JSON.parse(e.target.value);
+                    if (Array.isArray(parsed)) {
+                      updateConfig('tools', parsed);
+                    }
+                  } catch {
+                    // Allow editing even when JSON is incomplete
+                  }
+                }}
+                style={{ fontFamily: 'monospace', fontSize: 12 }}
               />
             </div>
           </>

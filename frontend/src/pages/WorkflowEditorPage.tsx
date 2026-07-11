@@ -55,10 +55,15 @@ const WorkflowEditorPage = () => {
   );
 
   const handleWorkflowDone = useCallback(
-    (data: { output: unknown }) => {
-      setExecutionStatus('completed');
-      setExecutionFinalOutput(data.output);
-      message.success('工作流执行完成');
+    (data: { output: unknown; error?: string; status?: string }) => {
+      if (data.status === 'error' || data.error) {
+        setExecutionStatus('error');
+        message.error(data.error || '工作流执行失败');
+      } else {
+        setExecutionStatus('completed');
+        message.success('工作流执行完成');
+      }
+      setExecutionFinalOutput(data.output ?? data.error ?? null);
     },
     [setExecutionStatus, setExecutionFinalOutput]
   );

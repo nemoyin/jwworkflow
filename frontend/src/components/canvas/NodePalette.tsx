@@ -11,11 +11,27 @@ interface NodeTypeItem {
 }
 
 const nodeTypes: NodeTypeItem[] = [
+  // Input / Output
   { type: 'input', label: '输入', color: '#52c41a', description: '用户输入 / 文件输入' },
+
+  // AI / Blue
   { type: 'llm', label: 'LLM 调用', color: '#1677ff', description: '大语言模型推理' },
+  { type: 'knowledge-retrieval', label: '知识检索', color: '#1677ff', description: '从知识库检索相关内容' },
+  { type: 'agent', label: 'Agent 代理', color: '#1677ff', description: 'AI Agent 多工具协同' },
+
+  // Processing / Orange
   { type: 'template', label: '模板渲染', color: '#fa8c16', description: '文本模板变量替换' },
   { type: 'code', label: '代码执行', color: '#fa8c16', description: 'Python / JS 脚本' },
+  { type: 'http-request', label: 'HTTP 请求', color: '#fa8c16', description: 'HTTP API 调用' },
+  { type: 'doc-extractor', label: '文档提取', color: '#fa8c16', description: 'PDF/DOCX/TXT 内容提取' },
+  { type: 'variable-aggregator', label: '变量聚合', color: '#fa8c16', description: '合并多分支输出' },
+
+  // Logic / Purple
   { type: 'ifelse', label: '条件分支', color: '#722ed1', description: '条件判断路由' },
+  { type: 'iteration', label: '循环迭代', color: '#722ed1', description: '遍历数组循环执行' },
+  { type: 'human-input', label: '人工输入', color: '#722ed1', description: '等待人工审核输入' },
+
+  // Output
   { type: 'output', label: '输出', color: '#52c41a', description: '结果输出 / 导出' },
 ];
 
