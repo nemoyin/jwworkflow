@@ -1,6 +1,9 @@
+import json
 import uuid
 import time
-from fastapi import APIRouter, Depends, HTTPException, status
+import asyncio
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_db
@@ -60,6 +63,42 @@ async def list_workflows(
         )
         for w in workflows
     ]
+
+
+@router.get("/run/sse/{workflow_id}")
+async def run_workflow_sse(
+    workflow_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """SSE 推送：获取最近一次运行的节点执行事件"""
+    wf_id = uuid.UUID(workflow_id)
+    result = await db.execute(
+        select(Run).where(
+            Run.workflow_id == wf_id,
+            Run.tenant_id == current_user.tenant_id,
+        ).order_by(Run.created_at.desc()).limit(1)
+    )
+    run = result.scalar_one_or_none()
+    if not run or not run.node_results:
+        async def empty_stream():
+            yield "data: {\"type\":\"no_data\"}\n\n"
+        return StreamingResponse(empty_stream(), media_type="text/event-stream")
+
+    events = run.node_results if isinstance(run.node_results, list) else []
+
+    async def event_stream():
+        for evt in events:
+            if await request.is_disconnected():
+                break
+            event_type = evt.get("type", "node_start")
+            data = json.dumps(evt.get("data", evt), ensure_ascii=False)
+            yield f"event: {event_type}\ndata: {data}\n\n"
+            await asyncio.sleep(0.05)
+        yield f"event: workflow_done\ndata: {json.dumps({'output': run.output}, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
 @router.get("/{workflow_id}", response_model=WorkflowResponse)

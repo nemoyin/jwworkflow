@@ -39,7 +39,7 @@ export function useSSE(
   useEffect(() => {
     if (!workflowId || !enabled) return;
 
-    const es = new EventSource(`/api/workflows/${workflowId}/run/sse`);
+    const es = new EventSource(`/api/workflows/run/sse/${workflowId}`);
     esRef.current = es;
 
     es.onopen = () => {
