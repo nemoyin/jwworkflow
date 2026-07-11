@@ -5,8 +5,9 @@ from app.models.run import Run
 from app.models.document import Document
 from app.models.embedding import Embedding
 from app.models.conversation import Conversation, Message
+from app.models.template import WorkflowTemplate
 
 __all__ = [
     "Tenant", "User", "Workflow", "Run", "Document", "Embedding",
-    "Conversation", "Message",
+    "Conversation", "Message", "WorkflowTemplate",
 ]

@@ -6,6 +6,7 @@ import WorkflowListPage from "./pages/WorkflowListPage"
 import WorkflowEditorPage from "./pages/WorkflowEditorPage"
 import RunHistoryPage from "./pages/RunHistoryPage"
 import KnowledgePage from "./pages/KnowledgePage"
+import TemplateMarketPage from "./pages/TemplateMarketPage"
 import AuthGuard from "./components/layout/AuthGuard"
 import AppLayout from "./components/layout/AppLayout"
 
@@ -23,6 +24,7 @@ const App = () => {
               <Route path="/workflows/:id" element={<WorkflowEditorPage />} />
               <Route path="/knowledge" element={<KnowledgePage />} />
               <Route path="/history" element={<RunHistoryPage />} />
+              <Route path="/templates" element={<TemplateMarketPage />} />
             </Route>
           </Route>
         </Routes>

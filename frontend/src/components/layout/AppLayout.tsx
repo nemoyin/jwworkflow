@@ -4,6 +4,7 @@ import {
   PartitionOutlined,
   BookOutlined,
   HistoryOutlined,
+  AppstoreOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   LogoutOutlined,
@@ -37,6 +38,11 @@ const AppLayout = () => {
       key: '/history',
       icon: <HistoryOutlined />,
       label: '运行历史',
+    },
+    {
+      key: '/templates',
+      icon: <AppstoreOutlined />,
+      label: '模板市场',
     },
   ];
 

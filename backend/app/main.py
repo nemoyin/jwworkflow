@@ -7,6 +7,7 @@ from app.api import workflows as workflows_router
 from app.api import runs as runs_router
 from app.api import knowledge as knowledge_router
 from app.api import conversations as conversations_router
+from app.api import templates as templates_router
 from app.config import settings
 from app.database import engine, Base
 
@@ -19,7 +20,7 @@ async def lifespan(app: FastAPI):
     关闭时: 释放数据库连接池。
     """
     # 导入所有模型以确保 Base.metadata 已注册
-    from app.models import Tenant, User, Workflow, Run, Document, Embedding, Conversation, Message  # noqa: F401
+    from app.models import Tenant, User, Workflow, Run, Document, Embedding, Conversation, Message, WorkflowTemplate  # noqa: F401
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
@@ -33,6 +34,7 @@ app.include_router(workflows_router.router)
 app.include_router(runs_router.router)
 app.include_router(knowledge_router.router)
 app.include_router(conversations_router.router)
+app.include_router(templates_router.router)
 
 
 @app.get("/health")
