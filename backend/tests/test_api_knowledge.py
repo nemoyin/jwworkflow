@@ -36,7 +36,7 @@ class TestKnowledgeAPI:
         assert resp.status_code == 201
         data = resp.json()
         assert data["name"] == "test.txt"
-        assert data["status"] == "pending"
+        assert data["status"] == "ready"  # RAG processing runs inline
         assert "id" in data
         assert data["file_size"] > 0
 

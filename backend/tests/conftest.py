@@ -38,6 +38,24 @@ def _compile_pguuid_sqlite(element, compiler, **kw):
 
 
 # ---------------------------------------------------------------------------
+# Register a SQLAlchemy type-compiler for pgvector's Vector type so it
+# renders as TEXT on SQLite (the cross-dialect Vector TypeDecorator in
+# app.models.embedding wraps the real pgvector.Vector, but Alembic and
+# create_all still see the pgvector UserDefinedType when using PostgreSQL).
+# For SQLite we need a no-op compiler that says TEXT.
+# ---------------------------------------------------------------------------
+try:
+    from pgvector.sqlalchemy import Vector as PgVector  # noqa: E402
+
+    @compiles(PgVector, "sqlite")
+    def _compile_vector_sqlite(element, compiler, **kw):
+        """Render pgvector Vector as TEXT on SQLite."""
+        return "TEXT"
+except ImportError:
+    pass
+
+
+# ---------------------------------------------------------------------------
 # Ensure tables are created before any test runs.  The app lifespan would
 # normally do this, but TestClient(app) used without a context manager
 # does NOT trigger the lifespan, so we do it at session scope here.

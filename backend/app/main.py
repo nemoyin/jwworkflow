@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
     关闭时: 释放数据库连接池。
     """
     # 导入所有模型以确保 Base.metadata 已注册
-    from app.models import Tenant, User, Workflow, Run, Document  # noqa: F401
+    from app.models import Tenant, User, Workflow, Run, Document, Embedding  # noqa: F401
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield

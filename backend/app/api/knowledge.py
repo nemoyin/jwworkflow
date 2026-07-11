@@ -13,6 +13,7 @@ from app.models.user import User
 from app.models.document import Document
 from app.schemas.knowledge import DocumentResponse, DocumentListResponse
 from app.config import settings
+from app.services.rag_service import RAGService
 
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
 
@@ -67,6 +68,10 @@ async def upload_document(
     )
     db.add(doc)
     await db.flush()
+
+    # 触发文档处理管道 (解析 → 分块 → 嵌入 → 存储)
+    rag = RAGService()
+    await rag.process_document(doc.id, db)
 
     return DocumentResponse(
         id=str(doc.id),
