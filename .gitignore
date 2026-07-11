@@ -10,3 +10,5 @@ build/
 data/
 .superpowers/
 *.db
+*.log
+backend2.log
