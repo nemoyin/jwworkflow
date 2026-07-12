@@ -158,14 +158,16 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     });
 
     try {
-      // POST to trigger backend execution; SSE stream will pick up events
+      // 同步执行：POST 返回即执行完成
       const resp: any = await api.post(`/workflows/${workflowId}/run`, inputs);
-      // If the response already contains output (synchronous completion), use it
-      if (resp && resp.output !== undefined) {
-        set({ executionFinalOutput: resp.output });
-      }
       if (resp && resp.status === 'error') {
         set({ executionStatus: 'error', executionFinalOutput: resp.error || '执行失败' });
+      } else {
+        // 成功完成
+        set({
+          executionStatus: 'completed',
+          executionFinalOutput: resp?.result ?? resp?.output ?? null,
+        });
       }
     } catch (err: unknown) {
       const errorMessage = (err as Error).message || '执行失败';

@@ -6,10 +6,13 @@ import {
   Select,
   Empty,
   Alert,
+  Button,
+  message,
 } from 'antd';
 import { useWorkflowStore } from '../../stores/workflowStore';
 import { nodeColorMap, nodeLabelMap } from '../nodes';
 import { api } from '../../services/api';
+import { LinkOutlined } from '@ant-design/icons';
 
 const { Text, Title } = Typography;
 const { TextArea } = Input;
@@ -681,7 +684,16 @@ const NodeConfigPanel: React.FC = () => {
                 style={{ fontFamily: 'monospace', fontSize: 12 }}
               />
             </div>
-            <Alert type="info" message="Webhook 可通过 POST /api/webhooks/trigger/{workflow_id 调用" style={{ fontSize: 11 }} />
+            <Alert type="info" message="HTTP POST 触发，无需认证" style={{ fontSize: 11, marginBottom: 8 }} />
+            <Button size="small" block icon={<LinkOutlined />}
+              onClick={() => {
+                const wfId = useWorkflowStore.getState().workflowId;
+                if (!wfId) { message.warning('请先保存工作流'); return; }
+                const url = `${window.location.origin}/api/webhooks/trigger/${wfId}`;
+                navigator.clipboard.writeText(url).then(() => message.success('Webhook URL 已复制')).catch(() => message.info(url));
+              }}>
+              复制 Webhook URL
+            </Button>
           </>
         );
 
