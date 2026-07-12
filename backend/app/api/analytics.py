@@ -18,44 +18,48 @@ async def get_stats(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """获取租户级运行统计"""
-    # 总运行次数
-    count_result = await db.execute(
-        select(func.count(Run.id)).where(Run.tenant_id == current_user.tenant_id)
-    )
-    total_runs = count_result.scalar() or 0
-
-    # 成功/失败分布
-    success_result = await db.execute(
-        select(func.count(Run.id)).where(
-            Run.tenant_id == current_user.tenant_id, Run.status == "success"
+    """获取租户级运行统计（含异常兼容）"""
+    try:
+        count_result = await db.execute(
+            select(func.count(Run.id)).where(Run.tenant_id == current_user.tenant_id)
         )
-    )
-    success_runs = success_result.scalar() or 0
-    failed_runs = total_runs - success_runs
+        total_runs = count_result.scalar() or 0
 
-    # 总 token 消耗
-    token_result = await db.execute(
-        select(func.coalesce(func.sum(Run.total_tokens), 0)).where(
-            Run.tenant_id == current_user.tenant_id
+        success_result = await db.execute(
+            select(func.count(Run.id)).where(
+                Run.tenant_id == current_user.tenant_id, Run.status == "success"
+            )
         )
-    )
-    total_tokens = token_result.scalar() or 0
+        success_runs = success_result.scalar() or 0
+        failed_runs = total_runs - success_runs
 
-    # 平均耗时
-    dur_result = await db.execute(
-        select(func.coalesce(func.avg(Run.duration_ms), 0)).where(
-            Run.tenant_id == current_user.tenant_id,
-            Run.duration_ms.isnot(None),
+        dur_result = await db.execute(
+            select(func.coalesce(func.avg(Run.duration_ms), 0)).where(
+                Run.tenant_id == current_user.tenant_id, Run.duration_ms.isnot(None),
+            )
         )
-    )
-    avg_duration = round(dur_result.scalar() or 0)
+        avg_duration = round(dur_result.scalar() or 0)
 
-    # 工作流总数
-    wf_result = await db.execute(
-        select(func.count(Workflow.id)).where(Workflow.tenant_id == current_user.tenant_id)
-    )
-    total_workflows = wf_result.scalar() or 0
+        wf_result = await db.execute(
+            select(func.count(Workflow.id)).where(Workflow.tenant_id == current_user.tenant_id)
+        )
+        total_workflows = wf_result.scalar() or 0
+
+        # Token 统计（兼容列不存在的情况）
+        try:
+            token_result = await db.execute(
+                select(func.coalesce(func.sum(Run.total_tokens), 0)).where(
+                    Run.tenant_id == current_user.tenant_id
+                )
+            )
+            total_tokens = token_result.scalar() or 0
+        except Exception:
+            total_tokens = 0
+    except Exception:
+        return {
+            "total_runs": 0, "success_runs": 0, "failed_runs": 0,
+            "success_rate": 0, "total_tokens": 0, "avg_duration_ms": 0, "total_workflows": 0,
+        }
 
     return {
         "total_runs": total_runs,
