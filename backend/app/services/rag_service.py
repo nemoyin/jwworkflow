@@ -26,6 +26,11 @@ logger = logging.getLogger(__name__)
 # Text extraction helpers
 # ---------------------------------------------------------------------------
 
+def _sanitize_text(text: str) -> str:
+    """Remove characters that PostgreSQL cannot store in UTF8 TEXT fields."""
+    return text.replace("\x00", "").replace("￾", "").replace("￿", "")
+
+
 def _extract_text(file_path: str, content_type: str | None = None) -> str:
     """Read the file at *file_path* and return its plain-text content.
 
@@ -35,8 +40,16 @@ def _extract_text(file_path: str, content_type: str | None = None) -> str:
     ext = os.path.splitext(file_path)[1].lower()
 
     if ext == ".txt":
-        with open(file_path, "r", encoding="utf-8", errors="replace") as f:
-            return f.read()
+        try:
+            # Try UTF-8 first, fall back to binary read + decode
+            with open(file_path, "rb") as f:
+                raw = f.read()
+            # Remove null bytes before decoding
+            text = raw.replace(b"\x00", b"").decode("utf-8", errors="replace")
+            return _sanitize_text(text)
+        except Exception as exc:
+            logger.warning("TXT extraction failed for %s: %s", file_path, exc)
+            return ""
 
     if ext == ".pdf":
         try:
@@ -44,7 +57,7 @@ def _extract_text(file_path: str, content_type: str | None = None) -> str:
 
             reader = PdfReader(file_path)
             pages = [page.extract_text() for page in reader.pages]
-            return "\n".join(pages)
+            return _sanitize_text("\n".join(pages))
         except Exception as exc:
             logger.warning("PDF extraction failed for %s: %s", file_path, exc)
             return ""
@@ -54,7 +67,7 @@ def _extract_text(file_path: str, content_type: str | None = None) -> str:
             from docx import Document as DocxDocument
 
             doc = DocxDocument(file_path)
-            return "\n".join(p.text for p in doc.paragraphs)
+            return _sanitize_text("\n".join(p.text for p in doc.paragraphs))
         except Exception as exc:
             logger.warning("DOCX extraction failed for %s: %s", file_path, exc)
             return ""
