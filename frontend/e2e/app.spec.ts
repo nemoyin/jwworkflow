@@ -153,4 +153,61 @@ test.describe('jwworkflow E2E', () => {
     const names = (await respB.json()).map((w: any) => w.name);
     expect(names).not.toContain('SecretWF');
   });
+
+  test('3.3 运行历史API', async ({ request }) => {
+    const token = await freshToken(request);
+    // Runs should be empty initially
+    const emptyResp = await request.get(`${BASE}/api/runs`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    expect(emptyResp.status()).toBe(200);
+
+    // Create and run a workflow
+    const wfResp = await request.post(`${BASE}/api/workflows`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { name: 'RunHistoryTest', type: 'workflow', dag_definition: { nodes: [], edges: [] } }
+    });
+    const wf = await wfResp.json();
+    await request.post(`${BASE}/api/workflows/${wf.id}/run`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: {}
+    });
+
+    // Runs should now have 1 entry
+    const runsResp = await request.get(`${BASE}/api/runs`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const runs = await runsResp.json();
+    expect(Array.isArray(runs)).toBeTruthy();
+    // Each run should have workflow_name
+    if (runs.length > 0) {
+      expect(runs[0].workflow_name).toBeDefined();
+      expect(runs[0].status).toBeDefined();
+      expect(runs[0].duration_ms).toBeDefined();
+    }
+  });
+
+  test('3.4 运行详情API', async ({ request }) => {
+    const token = await freshToken(request);
+    // Create and run a workflow
+    const wfResp = await request.post(`${BASE}/api/workflows`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { name: 'RunDetailTest', type: 'workflow', dag_definition: { nodes: [], edges: [] } }
+    });
+    const wf = await wfResp.json();
+    const runResp = await request.post(`${BASE}/api/workflows/${wf.id}/run`, {
+      headers: { Authorization: `Bearer ${token}` },
+      data: {}
+    });
+    const run = await runResp.json();
+
+    // Get run detail
+    const detailResp = await request.get(`${BASE}/api/runs/${run.id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    expect(detailResp.status()).toBe(200);
+    const detail = await detailResp.json();
+    expect(detail.id).toBe(run.id);
+    expect(detail.workflow_name).toBe('RunDetailTest');
+  });
 });
