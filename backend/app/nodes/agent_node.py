@@ -1,20 +1,21 @@
-"""Agent Node — uses real LLM (DeepSeek API) to select and call tools.
+"""Agent Node — ReAct / Function Calling dual-mode agent.
 
-Execution flow
---------------
-1. Build system prompt with tool descriptions
-2. Call LLM with tool definitions
-3. If LLM selects a tool, look up the tool definition
-4. Execute the tool (HTTP call via httpx or code execution)
-5. Return result to LLM for next iteration
-6. Repeat until LLM returns final answer or max_iterations reached
+Supports two reasoning modes:
+
+- **function_calling** (default): Uses OpenAI-compatible tool definitions.
+  The LLM selects tools via ``tool_calls`` and returns results.
+
+- **react**: Uses a structured ReAct prompt (Thought/Action/Action Input/
+  Observation). Responses are parsed from the LLM's text output.
 
 Returns
 -------
-{"final_answer": "...", "tool_calls": [...], "iterations": N}
+{"final_answer": "...", "tool_calls": [...], "iterations": N,
+ "trace": [...]}   (trace only present in react mode)
 """
 
 import json
+import re
 
 import httpx
 
@@ -23,12 +24,30 @@ from app.engine.context import ExecutionContext
 from app.schemas.tool import ToolDefinition
 from app.services.llm_service import chat_completion_with_tools
 
+# ReAct prompt template
+REACT_SYSTEM_TEMPLATE = """You are an AI assistant that follows the ReAct pattern.
+
+You have access to the following tools:
+
+{tool_descriptions}
+
+Use the following format exactly:
+
+Thought: what you need to do
+Action: the tool name to call
+Action Input: the input for the tool (as a JSON object)
+Observation: the result of the tool action
+... (this Thought/Action/Action Input/Observation can repeat)
+Thought: I now have the final answer
+Final Answer: your response
+
+If you don't need to use any tools, respond with:
+Thought: I don't need tools for this
+Final Answer: your response"""
+
 
 class AgentNodeExecutor(BaseNodeExecutor):
-    """Agent 节点：使用 LLM 推理选择并调用工具
-
-    通过 OpenAI 兼容接口调用 DeepSeek API。
-    若 LLM_API_KEY 未配置则自动降级为桩实现（stub）。
+    """Agent 节点：ReAct / Function Calling 双模式
 
     Config
     ------
@@ -37,14 +56,16 @@ class AgentNodeExecutor(BaseNodeExecutor):
     tools : list[dict | ToolDefinition]
         可用工具定义列表
     model : str, optional
-        模型名称（默认使用 settings.LLM_DEFAULT_MODEL）
+        模型名称
     max_iterations : int, optional
-        最大迭代次数（默认 5）
+        最大迭代次数（默认 10）
     temperature : float, optional
         温度参数（默认 0.3）
+    mode : str, optional
+        "function_calling" (默认) 或 "react"
     """
 
-    DEFAULT_MAX_ITERATIONS = 5
+    DEFAULT_MAX_ITERATIONS = 10
     DEFAULT_TEMPERATURE = 0.3
 
     def execute(self, ctx: ExecutionContext, config: dict) -> dict:
@@ -53,90 +74,108 @@ class AgentNodeExecutor(BaseNodeExecutor):
         model = config.get("model")
         max_iterations = config.get("max_iterations", self.DEFAULT_MAX_ITERATIONS)
         temperature = config.get("temperature", self.DEFAULT_TEMPERATURE)
+        mode = config.get("mode", "function_calling")
 
-        # 检查是否配置了 API Key
         from app.config import settings
         use_stub = config.get("stub_mode", False) or not settings.LLM_API_KEY
 
-        # Parse tool definitions
         tool_defs = self._parse_tools(tools_raw)
 
-        # Build initial prompt with tool descriptions
+        if mode == "react":
+            return self._execute_react(system_prompt, tool_defs, model, max_iterations, temperature, ctx, use_stub, config)
+
+        # --- function_calling mode (original) ---
         full_prompt = self._build_prompt(system_prompt, tool_defs)
-
-        # Convert tools to OpenAI-compatible format
         openai_tools = self._to_openai_tools(tool_defs) if tool_defs and not use_stub else None
-
-        conversation = [
-            {"role": "system", "content": full_prompt},
-        ]
-
+        conversation = [{"role": "system", "content": full_prompt}]
         tool_calls = []
-        iterations = 0
 
         for iterations in range(max_iterations):
             if use_stub:
-                # 降级为桩实现
-                response = self._call_llm_stub(
-                    conversation, model or "default",
-                    config.get("_stub_tool_calls"), iterations, tool_calls,
-                )
+                resp = self._call_llm_stub(conversation, model or "default", config.get("_stub_tool_calls"), iterations, tool_calls)
             else:
-                # 真实 LLM 调用
-                response = self._call_llm_real(
-                    conversation, model, openai_tools, temperature,
-                )
+                resp = self._call_llm_real(conversation, model, openai_tools, temperature)
 
-            if response["type"] == "final_answer":
-                return {
-                    "final_answer": response["content"],
-                    "tool_calls": tool_calls,
-                    "iterations": iterations + 1,
-                }
+            if resp["type"] == "final_answer":
+                return {"final_answer": resp["content"], "tool_calls": tool_calls, "iterations": iterations + 1}
 
-            if response["type"] == "tool_call":
-                tool_name = response["tool"]
-                tool_args = response.get("arguments", {})
+            if resp["type"] == "tool_call":
+                tool_calls.append({"name": resp["tool"], "arguments": resp.get("arguments", {})})
+                tool_def = self._find_tool(tool_defs, resp["tool"])
+                result = {"error": f"Tool '{resp['tool']}' not found"} if tool_def is None else self._execute_tool(tool_def, resp.get("arguments", {}), ctx)
+                conversation.append({"role": "assistant", "content": json.dumps({"tool_call": {"name": resp["tool"], "arguments": resp.get("arguments", {})}})})
+                conversation.append({"role": "user", "content": json.dumps({"tool_result": result})})
+            else:
+                return {"final_answer": str(resp.get("content", "")), "tool_calls": tool_calls, "iterations": iterations + 1}
 
-                tool_call_entry = {"name": tool_name, "arguments": tool_args}
-                tool_calls.append(tool_call_entry)
+        return {"final_answer": "Max iterations reached.", "tool_calls": tool_calls, "iterations": max_iterations}
 
-                # Look up the tool definition
+    def _execute_react(self, system_prompt, tool_defs, model, max_iterations, temperature, ctx, use_stub, config):
+        """ReAct 模式：Thought → Action → Observation 循环"""
+        # Build ReAct prompt
+        tool_lines = []
+        for t in tool_defs:
+            tool_lines.append(f"- {t.name}: {t.description}")
+            if t.input_schema:
+                tool_lines.append(f"  Input: {json.dumps(t.input_schema, ensure_ascii=False)}")
+        tool_desc = "\n".join(tool_lines) if tool_lines else "No tools available."
+
+        prompt = REACT_SYSTEM_TEMPLATE.replace("{tool_descriptions}", tool_desc)
+        if system_prompt and system_prompt != "You are a helpful assistant.":
+            prompt = system_prompt + "\n\n" + prompt
+
+        conversation = [{"role": "system", "content": prompt}]
+        trace = []
+        tool_calls = []
+
+        for iterations in range(max_iterations):
+            from app.nodes.llm_node import _sync_chat_completion
+            try:
+                response = _sync_chat_completion(messages=conversation, model=model, temperature=temperature, max_tokens=4096)
+            except Exception as e:
+                return {"final_answer": f"[Error] {e}", "tool_calls": tool_calls, "iterations": iterations + 1, "trace": trace}
+
+            if not response:
+                return {"final_answer": "Empty response from LLM", "tool_calls": tool_calls, "iterations": iterations + 1, "trace": trace}
+
+            trace.append({"step": iterations + 1, "type": "llm_response", "content": response})
+
+            # Parse ReAct format
+            final_match = re.search(r"Final Answer:\s*(.*)", response, re.DOTALL)
+            if final_match:
+                return {"final_answer": final_match.group(1).strip(), "tool_calls": tool_calls, "iterations": iterations + 1, "trace": trace}
+
+            action_match = re.search(r"Action:\s*(\w+)\s*\nAction Input:\s*(.*?)(?:\n|$)", response, re.DOTALL)
+            if action_match:
+                tool_name = action_match.group(1).strip()
+                raw_input = action_match.group(2).strip()
+                try:
+                    tool_args = json.loads(raw_input)
+                except json.JSONDecodeError:
+                    tool_args = {"input": raw_input}
+
+                tool_calls.append({"name": tool_name, "arguments": tool_args})
                 tool_def = self._find_tool(tool_defs, tool_name)
                 if tool_def is None:
-                    result = {
-                        "error": (
-                            f"Tool '{tool_name}' not found. "
-                            f"Available tools: {[t.name for t in tool_defs]}"
-                        )
-                    }
+                    result = {"error": f"Unknown tool: {tool_name}. Available: {[t.name for t in tool_defs]}"}
                 else:
                     try:
                         result = self._execute_tool(tool_def, tool_args, ctx)
                     except Exception as e:
-                        result = {"error": f"Tool execution failed: {str(e)}"}
+                        result = {"error": str(e)}
 
-                # Feed result back
-                conversation.append({
-                    "role": "assistant",
-                    "content": json.dumps({"tool_call": tool_call_entry}),
-                })
-                conversation.append({
-                    "role": "user",
-                    "content": json.dumps({"tool_result": result}),
-                })
+                obs = json.dumps({"Observation": result}, ensure_ascii=False)
+                conversation.append({"role": "assistant", "content": response})
+                conversation.append({"role": "user", "content": obs})
+                trace.append({"step": iterations + 1, "type": "observation", "content": result})
             else:
-                return {
-                    "final_answer": str(response.get("content", "")),
-                    "tool_calls": tool_calls,
-                    "iterations": iterations + 1,
-                }
+                # No action found — treat response as final answer
+                # Strip any prefix like "Thought:" to get clean answer
+                thought_match = re.search(r"(?:Thought:|Answer:)\s*(.*)", response, re.DOTALL)
+                answer = thought_match.group(1).strip() if thought_match else response
+                return {"final_answer": answer, "tool_calls": tool_calls, "iterations": iterations + 1, "trace": trace}
 
-        return {
-            "final_answer": "Max iterations reached without final answer.",
-            "tool_calls": tool_calls,
-            "iterations": max_iterations,
-        }
+        return {"final_answer": "Max iterations reached.", "tool_calls": tool_calls, "iterations": max_iterations, "trace": trace}
 
     # ------------------------------------------------------------------
     # Real LLM call

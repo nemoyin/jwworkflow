@@ -553,6 +553,17 @@ const NodeConfigPanel: React.FC = () => {
         return (
           <>
             <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>模式</Text>
+              <Select size="small" style={{ width: '100%' }}
+                value={config.mode || 'function_calling'}
+                onChange={(v) => updateConfig('mode', v)}
+                options={[
+                  { value: 'function_calling', label: 'Function Calling' },
+                  { value: 'react', label: 'ReAct (推理+行动)' },
+                ]}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
               <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
                 模型
               </Text>

@@ -36,8 +36,8 @@ class TestAgentNode:
         assert result["iterations"] == 1
 
     def test_default_max_iterations_constant(self):
-        """验证 DEFAULT_MAX_ITERATIONS = 5"""
-        assert AgentNodeExecutor.DEFAULT_MAX_ITERATIONS == 5
+        """验证 DEFAULT_MAX_ITERATIONS = 10"""
+        assert AgentNodeExecutor.DEFAULT_MAX_ITERATIONS == 10
 
     def test_empty_config_uses_defaults(self):
         """空 config 也能正常工作（使用所有默认值）"""
