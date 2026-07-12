@@ -25,7 +25,6 @@ interface AvailableModel {
 
 const NodeConfigPanel: React.FC = () => {
   const selectedNode = useWorkflowStore((s) => s.selectedNode);
-  const updateNodeConfig = useWorkflowStore((s) => s.updateNodeConfig);
   const [models, setModels] = useState<AvailableModel[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [directories, setDirectories] = useState<string[]>(['/']);
@@ -44,14 +43,15 @@ const NodeConfigPanel: React.FC = () => {
 
   const updateConfig = useCallback(
     (key: string, value: any) => {
-      if (!selectedNode) return;
+      const node = useWorkflowStore.getState().selectedNode;
+      if (!node) return;
       const newConfig = {
-        ...(selectedNode.data.config || {}),
+        ...(node.data.config || {}),
         [key]: value,
       };
-      updateNodeConfig(selectedNode.id, newConfig);
+      useWorkflowStore.getState().updateNodeConfig(node.id, newConfig);
     },
-    [selectedNode, updateNodeConfig]
+    []  // no deps — reads fresh state from store each time
   );
 
   if (!selectedNode) {
