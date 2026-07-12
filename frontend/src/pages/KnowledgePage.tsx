@@ -44,11 +44,11 @@ const KnowledgePage: React.FC = () => {
     formData.append('file', file);
     formData.append('directory', currentDir);
     try {
-      await api.post('/knowledge/upload', formData);
+      await api.uploadFormData('/knowledge/upload', formData);
       message.success(`已上传 ${file.name}`);
       loadDocs(currentDir);
       loadDirs();
-    } catch { message.error('上传失败'); }
+    } catch (e: any) { message.error(`上传失败: ${e.message}`); }
     return false;
   };
 

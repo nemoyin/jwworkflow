@@ -3,7 +3,7 @@ import uuid
 import shutil
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
 @router.post("/upload", status_code=201, response_model=DocumentResponse)
 async def upload_document(
     file: UploadFile = File(...),
-    directory: str = "/",
+    directory: str = Form("/"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

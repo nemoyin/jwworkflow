@@ -25,17 +25,18 @@ class ApiClient {
   delete(path: string) { return this.request<void>('DELETE', path); }
 
   /** Upload a file via multipart/form-data */
-  async uploadDocument(file: File): Promise<KnowledgeDocument> {
+  async uploadFormData(path: string, formData: FormData): Promise<any> {
     const headers: Record<string, string> = {};
     if (this.token) headers['Authorization'] = `Bearer ${this.token}`;
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await fetch(`${BASE_URL}/knowledge/upload`, {
+    const res = await fetch(`${BASE_URL}${path}`, {
       method: 'POST',
       headers,
       body: formData,
     });
-    if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`Upload failed: ${res.status} ${text}`);
+    }
     return res.json();
   }
 

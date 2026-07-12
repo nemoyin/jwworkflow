@@ -37,7 +37,8 @@ const LoginPage = () => {
         <Title level={3} style={{ textAlign: 'center', marginBottom: 24 }}>
           jwworkflow 登录
         </Title>
-        <Form onFinish={onFinish} layout="vertical">
+        <Form onFinish={onFinish} layout="vertical"
+          initialValues={{ email: 'admin@demo.com', password: 'demo123' }}>
           <Form.Item
             name="email"
             label="邮箱"
