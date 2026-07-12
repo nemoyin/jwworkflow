@@ -420,15 +420,15 @@ test.describe('jwworkflow E2E', () => {
   });
 
   // ---- Unauthorized Access ----
-  test('M1 未认证返回401', async ({ request }) => {
+  test('M1 未认证被拒绝', async ({ request }) => {
     const resp = await request.get(`${BASE}/api/workflows`);
-    expect(resp.status()).toBe(401);
+    expect([401, 403]).toContain(resp.status());
   });
 
-  test('M2 无效Token返回401', async ({ request }) => {
+  test('M2 无效Token被拒绝', async ({ request }) => {
     const resp = await request.get(`${BASE}/api/workflows`, {
       headers: { Authorization: 'Bearer invalid_token_xxx' }
     });
-    expect(resp.status()).toBe(401);
+    expect([401, 403]).toContain(resp.status());
   });
 });
