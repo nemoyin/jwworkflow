@@ -65,6 +65,69 @@ async def list_workflows(
     ]
 
 
+@router.get("/{workflow_id}/preview")
+async def preview_workflow(
+    workflow_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """获取工作流的输入 schema，供外部系统调用参考"""
+    wf_id = uuid.UUID(workflow_id)
+    result = await db.execute(
+        select(Workflow).where(Workflow.id == wf_id, Workflow.tenant_id == current_user.tenant_id)
+    )
+    wf = result.scalar_one_or_none()
+    if not wf:
+        raise HTTPException(status_code=404, detail="工作流不存在")
+
+    # 提取输入节点字段
+    input_fields = []
+    for node in wf.dag_definition.get("nodes", []):
+        if node["type"] == "input":
+            input_fields = node["config"].get("fields", [])
+            break
+
+    return {
+        "id": str(wf.id),
+        "name": wf.name,
+        "description": wf.description,
+        "type": wf.type,
+        "input_fields": input_fields,
+        "endpoint": f"/api/workflows/{wf.id}/run",
+        "method": "POST",
+    }
+
+
+@router.post("/{workflow_id}/execute")
+async def execute_workflow_external(
+    workflow_id: str,
+    body: dict,
+    db: AsyncSession = Depends(get_db),
+):
+    """外部系统调用执行工作流（通过 API Key 或公开方式）"""
+    try:
+        wf_id = uuid.UUID(workflow_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid workflow ID")
+
+    result = await db.execute(select(Workflow).where(Workflow.id == wf_id))
+    wf = result.scalar_one_or_none()
+    if not wf:
+        raise HTTPException(status_code=404, detail="工作流不存在")
+
+    dag = WorkflowDag(
+        nodes=wf.dag_definition.get("nodes", []),
+        edges=wf.dag_definition.get("edges", []),
+    )
+    executor = WorkflowExecutor(dag, NODE_REGISTRY)
+
+    try:
+        output = executor.execute(body)
+        return {"status": "success", "output": output}
+    except Exception as e:
+        return {"status": "failed", "error": str(e)}
+
+
 @router.get("/run/sse/{workflow_id}")
 async def run_workflow_sse(
     workflow_id: str,
@@ -204,6 +267,11 @@ async def run_workflow(
         edges=wf.dag_definition.get("edges", []),
     )
     executor = WorkflowExecutor(dag, NODE_REGISTRY, db=db, tenant_id=current_user.tenant_id)
+    # 如果是调试模式，传入 debug 回调
+    debug_callback = None
+    if body.pop("_debug", False):
+        debug_events = []
+        debug_callback = lambda evt: debug_events.append(evt)
 
     start_time = time.time()
     try:

@@ -5,6 +5,7 @@ import {
   InputNumber,
   Select,
   Empty,
+  Alert,
 } from 'antd';
 import { useWorkflowStore } from '../../stores/workflowStore';
 import { nodeColorMap, nodeLabelMap } from '../nodes';
@@ -617,6 +618,70 @@ const NodeConfigPanel: React.FC = () => {
                 style={{ fontFamily: 'monospace', fontSize: 12 }}
               />
             </div>
+          </>
+        );
+
+      case 'rule-engine':
+        return (
+          <>
+            <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>组合方式</Text>
+              <Select size="small" style={{ width: '100%' }}
+                value={config.combine || 'any'}
+                onChange={(v) => updateConfig('combine', v)}
+                options={[
+                  { value: 'any', label: '任一命中触发' },
+                  { value: 'all', label: '全部命中触发' },
+                ]}
+              />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>规则列表 (JSON)</Text>
+              <TextArea size="small" rows={8}
+                placeholder={JSON.stringify([{ name: '价格异常', field: 'price', operator: 'gt', threshold: 100, severity: 'high' }], null, 2)}
+                value={(() => { try { return JSON.stringify(config.rules || [], null, 2); } catch { return ''; } })()}
+                onChange={(e) => { try { const v = JSON.parse(e.target.value); if (Array.isArray(v)) updateConfig('rules', v); } catch {} }}
+                style={{ fontFamily: 'monospace', fontSize: 12 }}
+              />
+              <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                支持: eq/ne/gt/gte/lt/lte/contains/between/regex_match/deviation_gt/count_distinct_lt/is_empty
+              </Text>
+            </div>
+          </>
+        );
+
+      case 'answer':
+        return (
+          <div style={{ marginBottom: 12 }}>
+            <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>输出来源</Text>
+            <Input size="small" placeholder="例如: n2.output"
+              value={config.source || ''}
+              onChange={(e) => updateConfig('source', e.target.value)} />
+            <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+              指定上游节点的输出作为对话回复内容
+            </Text>
+          </div>
+        );
+
+      case 'webhook':
+        return (
+          <>
+            <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>签名密钥</Text>
+              <Input size="small" placeholder="可选：HMAC-SHA256 密钥"
+                value={config.secret || ''}
+                onChange={(e) => updateConfig('secret', e.target.value)} />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>字段映射 (JSON)</Text>
+              <TextArea size="small" rows={3}
+                placeholder='{"source_field": "target_field"}'
+                value={(() => { try { return JSON.stringify(config.field_mapping || {}, null, 2); } catch { return ''; } })()}
+                onChange={(e) => { try { const v = JSON.parse(e.target.value); updateConfig('field_mapping', v); } catch {} }}
+                style={{ fontFamily: 'monospace', fontSize: 12 }}
+              />
+            </div>
+            <Alert type="info" message="Webhook 可通过 POST /api/webhooks/trigger/{workflow_id 调用" style={{ fontSize: 11 }} />
           </>
         );
 

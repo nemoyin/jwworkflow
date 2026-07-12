@@ -13,6 +13,9 @@ import CodeNode from './CodeNode';
 import VariableAggregatorNode from './VariableAggregatorNode';
 import AgentNode from './AgentNode';
 import DocExtractorNode from './DocExtractorNode';
+import RuleEngineNode from './RuleEngineNode';
+import AnswerNode from './AnswerNode';
+import WebhookNode from './WebhookNode';
 
 export {
   LLMNode,
@@ -49,6 +52,9 @@ export const nodeTypes: NodeTypes = {
   'doc-extractor': DocExtractorNode,
   'variable-aggregator': VariableAggregatorNode,
   agent: AgentNode,
+  'rule-engine': RuleEngineNode,
+  answer: AnswerNode,
+  webhook: WebhookNode,
 };
 
 /**
@@ -68,6 +74,9 @@ export const nodeColorMap: Record<string, string> = {
   ifelse: '#722ed1',
   iteration: '#722ed1',
   'human-input': '#722ed1',
+  'rule-engine': '#eb2f96',
+  answer: '#52c41a',
+  webhook: '#52c41a',
 };
 
 /**
@@ -87,4 +96,7 @@ export const nodeLabelMap: Record<string, string> = {
   ifelse: '条件分支',
   iteration: '迭代',
   'human-input': '人工输入',
+  'rule-engine': '规则引擎',
+  answer: 'Answer',
+  webhook: 'Webhook',
 };

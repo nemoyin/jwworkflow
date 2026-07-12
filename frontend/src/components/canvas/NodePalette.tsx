@@ -25,11 +25,15 @@ const nodeTypes: NodeTypeItem[] = [
   { type: 'http-request', label: 'HTTP 请求', color: '#fa8c16', description: 'HTTP API 调用' },
   { type: 'doc-extractor', label: '文档提取', color: '#fa8c16', description: 'PDF/DOCX/TXT 内容提取' },
   { type: 'variable-aggregator', label: '变量聚合', color: '#fa8c16', description: '合并多分支输出' },
+  { type: 'rule-engine', label: '规则引擎', color: '#eb2f96', description: '条件规则判定与阈值检查' },
 
   // Logic / Purple
   { type: 'ifelse', label: '条件分支', color: '#722ed1', description: '条件判断路由' },
   { type: 'iteration', label: '循环迭代', color: '#722ed1', description: '遍历数组循环执行' },
   { type: 'human-input', label: '人工输入', color: '#722ed1', description: '等待人工审核输入' },
+
+  { type: 'webhook', label: 'Webhook', color: '#52c41a', description: 'HTTP 触发 / 回调入口' },
+  { type: 'answer', label: 'Answer', color: '#52c41a', description: '对话流流式输出' },
 
   // Output
   { type: 'output', label: '输出', color: '#52c41a', description: '结果输出 / 导出' },

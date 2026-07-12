@@ -9,6 +9,7 @@ import KnowledgePage from "./pages/KnowledgePage"
 import TemplateMarketPage from "./pages/TemplateMarketPage"
 import ModelManagementPage from "./pages/ModelManagementPage"
 import AdminDashboard from "./pages/AdminDashboard"
+import WorkflowPreviewPage from "./pages/WorkflowPreviewPage"
 import AuthGuard from "./components/layout/AuthGuard"
 import AppLayout from "./components/layout/AppLayout"
 
@@ -29,6 +30,7 @@ const App = () => {
               <Route path="/templates" element={<TemplateMarketPage />} />
               <Route path="/admin/models" element={<ModelManagementPage />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/preview/:id" element={<WorkflowPreviewPage />} />
             </Route>
           </Route>
         </Routes>
