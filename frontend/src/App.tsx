@@ -11,6 +11,7 @@ import ModelManagementPage from "./pages/ModelManagementPage"
 import AdminDashboard from "./pages/AdminDashboard"
 import WorkflowPreviewPage from "./pages/WorkflowPreviewPage"
 import AnalyticsDashboard from "./pages/AnalyticsDashboard"
+import ToolsPage from "./pages/ToolsPage"
 import AuthGuard from "./components/layout/AuthGuard"
 import AppLayout from "./components/layout/AppLayout"
 
@@ -33,6 +34,7 @@ const App = () => {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/preview/:id" element={<WorkflowPreviewPage />} />
               <Route path="/analytics" element={<AnalyticsDashboard />} />
+              <Route path="/tools" element={<ToolsPage />} />
             </Route>
           </Route>
         </Routes>

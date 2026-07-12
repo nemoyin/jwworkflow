@@ -3,7 +3,7 @@ import { Button, Space, message, Tooltip, Dropdown } from 'antd';
 import {
   ZoomInOutlined, ZoomOutOutlined, AimOutlined, SaveOutlined,
   PlayCircleOutlined, BugOutlined, EyeOutlined, LinkOutlined,
-  DownloadOutlined, DownOutlined,
+  DownloadOutlined, DownOutlined, CheckCircleOutlined,
 } from '@ant-design/icons';
 import { useReactFlow } from 'reactflow';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,7 @@ import { api } from '../../services/api';
 const CanvasToolbar: React.FC = () => {
   const reactFlowInstance = useReactFlow();
   const navigate = useNavigate();
-  const { saveWorkflow, executeWorkflow, workflowName, executionStatus, workflowId } =
+  const { saveWorkflow, executeWorkflow, publishWorkflow, workflowName, workflowStatus, executionStatus, workflowId } =
     useWorkflowStore();
   const isRunning = executionStatus === 'running';
 
@@ -64,7 +64,17 @@ const CanvasToolbar: React.FC = () => {
     } catch { message.error('导出失败'); }
   }, [workflowId]);
 
+  const handlePublish = useCallback(async () => {
+    try {
+      await publishWorkflow();
+      message.success('工作流已发布（MCP 工具可见）');
+    } catch (e: any) {
+      message.error(e.message || '发布失败');
+    }
+  }, [publishWorkflow]);
+
   const previewItems = [
+    { key: 'publish', icon: <CheckCircleOutlined />, label: workflowStatus === 'published' ? '已发布' : '发布为 MCP 工具', onClick: handlePublish },
     { key: 'preview', icon: <EyeOutlined />, label: '预览页面', onClick: () => workflowId && navigate(`/preview/${workflowId}`) },
     { key: 'webhook', icon: <LinkOutlined />, label: 'Webhook URL',
       onClick: () => {

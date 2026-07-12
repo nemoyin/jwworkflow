@@ -46,6 +46,11 @@ const AppLayout = () => {
       label: '模型管理',
     },
     {
+      key: '/tools',
+      icon: <ApiOutlined />,
+      label: '工具市场',
+    },
+    {
       key: '/analytics',
       icon: <ThunderboltOutlined />,
       label: '分析',

@@ -11,6 +11,8 @@ interface WorkflowState {
   selectedNode: Node | null;
   workflowId: string | null;
   workflowName: string;
+  workflowStatus: string;
+  publishWorkflow: () => Promise<void>;
 
   // Execution state
   executionStatus: ExecutionStatus;
@@ -48,6 +50,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   selectedNode: null,
   workflowId: null,
   workflowName: '',
+  workflowStatus: 'draft',
 
   // Initial execution state
   executionStatus: 'idle',
@@ -107,9 +110,17 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     set({
       workflowId: wf.id,
       workflowName: wf.name,
+      workflowStatus: wf.status || 'draft',
       nodes,
       edges,
     });
+  },
+
+  publishWorkflow: async () => {
+    const { workflowId } = get();
+    if (!workflowId) throw new Error('请先保存工作流');
+    await api.put(`/workflows/${workflowId}`, { status: 'published' });
+    set({ workflowStatus: 'published' });
   },
 
   saveWorkflow: async () => {
