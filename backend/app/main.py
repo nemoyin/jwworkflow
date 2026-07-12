@@ -30,6 +30,12 @@ async def lifespan(app: FastAPI):
     # 导入所有模型以确保 Base.metadata 已注册
     from app.models import Tenant, User, Workflow, Run, Document, Embedding, Conversation, Message, WorkflowTemplate, ModelProvider, ModelRegistry  # noqa: F401
     async with engine.begin() as conn:
+        # Enable pgvector extension for PostgreSQL
+        try:
+            from sqlalchemy import text
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        except Exception:
+            pass  # SQLite or older PostgreSQL without pgvector
         await conn.run_sync(Base.metadata.create_all)
     yield
     await engine.dispose()
