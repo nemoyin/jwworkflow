@@ -3,11 +3,12 @@ import { Button, Space, message, Tooltip, Dropdown } from 'antd';
 import {
   ZoomInOutlined, ZoomOutOutlined, AimOutlined, SaveOutlined,
   PlayCircleOutlined, BugOutlined, EyeOutlined, LinkOutlined,
-  DownOutlined,
+  DownloadOutlined, DownOutlined,
 } from '@ant-design/icons';
 import { useReactFlow } from 'reactflow';
 import { useNavigate } from 'react-router-dom';
 import { useWorkflowStore } from '../../stores/workflowStore';
+import { api } from '../../services/api';
 
 const CanvasToolbar: React.FC = () => {
   const reactFlowInstance = useReactFlow();
@@ -51,6 +52,18 @@ const CanvasToolbar: React.FC = () => {
     }
   }, [executeWorkflow, workflowId]);
 
+  const handleExportDSL = useCallback(async () => {
+    if (!workflowId) { message.warning('请先保存工作流'); return; }
+    try {
+      const data: any = await api.get(`/dsl/export/${workflowId}`);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `${data.name || 'workflow'}.dsl.json`; a.click();
+      URL.revokeObjectURL(url);
+      message.success('DSL 已导出');
+    } catch { message.error('导出失败'); }
+  }, [workflowId]);
+
   const previewItems = [
     { key: 'preview', icon: <EyeOutlined />, label: '预览页面', onClick: () => workflowId && navigate(`/preview/${workflowId}`) },
     { key: 'webhook', icon: <LinkOutlined />, label: 'Webhook URL',
@@ -60,6 +73,7 @@ const CanvasToolbar: React.FC = () => {
         navigator.clipboard.writeText(url).then(() => message.success('Webhook URL 已复制')).catch(() => message.info(url));
       }
     },
+    { key: 'export', icon: <DownloadOutlined />, label: '导出 DSL', onClick: handleExportDSL },
   ];
 
   return (

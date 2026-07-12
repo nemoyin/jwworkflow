@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Button, Table, Typography, Space, Tag, message, Popconfirm } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { Button, Table, Typography, Space, Tag, message, Popconfirm, Upload } from 'antd';
+import { PlusOutlined, DeleteOutlined, EditOutlined, PlayCircleOutlined, UploadOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 
@@ -91,10 +91,28 @@ const WorkflowListPage = () => {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Title level={4} style={{ margin: 0 }}>工作流列表</Title>
-        <Button type="primary" icon={<PlusOutlined />}
-          onClick={() => navigate('/workflows/new')}>
-          新建工作流
-        </Button>
+        <Space>
+          <Upload accept=".json,.dsl.json" showUploadList={false}
+            beforeUpload={(file) => {
+              const reader = new FileReader();
+              reader.onload = async (e) => {
+                try {
+                  const dsl = JSON.parse(e.target?.result as string);
+                  const res: any = await api.post('/dsl/import', dsl);
+                  message.success(`已导入「${res.name}」`);
+                  window.location.reload();
+                } catch { message.error('导入失败，请检查文件格式'); }
+              };
+              reader.readAsText(file);
+              return false;
+            }}>
+            <Button icon={<UploadOutlined />}>导入 DSL</Button>
+          </Upload>
+          <Button type="primary" icon={<PlusOutlined />}
+            onClick={() => navigate('/workflows/new')}>
+            新建工作流
+          </Button>
+        </Space>
       </div>
       <Table
         dataSource={workflows}

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Layout, Menu, Button, Typography, theme } from 'antd';
 import {
   PartitionOutlined, BookOutlined, HistoryOutlined, AppstoreOutlined,
-  ApiOutlined, SettingOutlined, MenuFoldOutlined, MenuUnfoldOutlined, LogoutOutlined,
+  ApiOutlined, SettingOutlined, ThunderboltOutlined,
+  MenuFoldOutlined, MenuUnfoldOutlined, LogoutOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
@@ -43,6 +44,11 @@ const AppLayout = () => {
       key: '/admin/models',
       icon: <ApiOutlined />,
       label: '模型管理',
+    },
+    {
+      key: '/analytics',
+      icon: <ThunderboltOutlined />,
+      label: '分析',
     },
     {
       key: '/admin',
