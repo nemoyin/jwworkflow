@@ -168,35 +168,51 @@ class RAGService:
 
     # ---- hybrid search ------------------------------------------------------
 
+    @staticmethod
+    def _rerank(query: str, chunks: list[dict], top_k: int) -> list[dict]:
+        """对检索结果进行重排序（关键词命中+位置加权）"""
+        if not chunks:
+            return []
+        query_terms = set(query.lower().split())
+        for chunk in chunks:
+            text = chunk.get("chunk_text", chunk.get("text", "")) or ""
+            base = chunk.get("score", chunk.get("vector_distance", 1))
+            if isinstance(base, (int, float)):
+                base_score = 1.0 - float(base) if base < 1 else 0.5  # distance to similarity
+            else:
+                base_score = 0.5
+            term_hits = sum(1 for t in query_terms if t in text.lower())
+            kw_score = term_hits / max(len(query_terms), 1) * 0.3
+            idx = chunk.get("chunk_index", 0)
+            pos_boost = max(0, 1.0 - idx * 0.01) * 0.1
+            chunk["_rerank_score"] = base_score * 0.6 + kw_score + pos_boost
+        sorted_chunks = sorted(chunks, key=lambda c: c.get("_rerank_score", 0), reverse=True)
+        return sorted_chunks[:top_k]
+
     async def search(
         self,
         query: str,
         tenant_id,
         db: AsyncSession,
         top_k: int = 5,
+        rerank: bool = True,
     ) -> list[dict]:
-        """Hybrid retrieval — vector similarity + keyword fallback.
-
-        On PostgreSQL the search uses ``<=>`` (cosine distance) on the
-        pgvector column combined with a ``tsvector`` full-text score.
-
-        On SQLite (testing) it falls back to a simple ``LIKE`` filter.
-        """
+        """Hybrid retrieval — vector similarity + keyword fallback + optional rerank."""
         if not query.strip():
             return []
 
-        # Generate query embedding
         query_vec = self._embedder.generate(query)
-
         dialect = db.bind.dialect.name if db.bind else "sqlite"
 
         if dialect == "postgresql":
-            return await self._hybrid_search_pg(
-                query, query_vec, tenant_id, db, top_k
-            )
-        return await self._keyword_search_fallback(
-            query, tenant_id, db, top_k
-        )
+            results = await self._hybrid_search_pg(query, query_vec, tenant_id, db, top_k * 2 if rerank else top_k)
+        else:
+            results = await self._keyword_search_fallback(query, tenant_id, db, top_k * 2 if rerank else top_k)
+
+        if rerank and len(results) > 1:
+            results = self._rerank(query, results, top_k)
+
+        return results[:top_k]
 
     async def _hybrid_search_pg(
         self,

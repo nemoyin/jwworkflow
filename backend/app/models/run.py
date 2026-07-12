@@ -19,4 +19,6 @@ class Run(Base):
     error: Mapped[str] = Column(Text, nullable=True)
     duration_ms: Mapped[int] = Column(Integer, nullable=True)
     node_results: Mapped[list] = Column(JSON, nullable=True)
+    total_tokens: Mapped[int] = Column(Integer, default=0)
+    model_used: Mapped[str] = Column(String(128), default="")
     created_at: Mapped[datetime] = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
