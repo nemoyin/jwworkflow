@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState, DragEvent } from 'react';
-import ReactFlow, { useReactFlow, Background, Controls, Node, NodeTypes } from 'reactflow';
+import ReactFlow, { useReactFlow, Background, Controls, Node, Edge, NodeTypes } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useWorkflowStore } from '../../stores/workflowStore';
 
@@ -12,6 +12,7 @@ interface ContextMenuState {
   x: number;
   y: number;
   node: Node | null;
+  edge: Edge | null;
 }
 
 const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodeTypes }) => {
@@ -20,7 +21,7 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodeTypes }) => {
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode, selectNode } =
     useWorkflowStore();
 
-  const [menu, setMenu] = useState<ContextMenuState>({ visible: false, x: 0, y: 0, node: null });
+  const [menu, setMenu] = useState<ContextMenuState>({ visible: false, x: 0, y: 0, node: null, edge: null });
 
   const closeMenu = useCallback(() => setMenu(s => ({ ...s, visible: false })), []);
 
@@ -60,9 +61,17 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodeTypes }) => {
     (event: React.MouseEvent, node: Node) => {
       event.preventDefault();
       selectNode(node);
-      setMenu({ visible: true, x: event.clientX - 250, y: event.clientY - 80, node });
+      setMenu({ visible: true, x: event.clientX - 250, y: event.clientY - 80, node, edge: null });
     },
     [selectNode]
+  );
+
+  const onEdgeContextMenu = useCallback(
+    (event: React.MouseEvent, edge: Edge) => {
+      event.preventDefault();
+      setMenu({ visible: true, x: event.clientX - 250, y: event.clientY - 80, node: null, edge });
+    },
+    []
   );
 
   const onPaneContextMenu = useCallback(
@@ -78,6 +87,12 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodeTypes }) => {
     onNodesChange([{ type: 'remove', id: menu.node.id }]);
     closeMenu();
   }, [menu.node, onNodesChange, closeMenu]);
+
+  const handleDeleteEdge = useCallback(() => {
+    if (!menu.edge) return;
+    onEdgesChange([{ type: 'remove', id: menu.edge.id }]);
+    closeMenu();
+  }, [menu.edge, onEdgesChange, closeMenu]);
 
   const handleDuplicateNode = useCallback(() => {
     if (!menu.node) return;
@@ -99,6 +114,7 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodeTypes }) => {
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
         onNodeContextMenu={onNodeContextMenu}
+        onEdgeContextMenu={onEdgeContextMenu}
         onPaneContextMenu={onPaneContextMenu}
         nodeTypes={nodeTypes}
         fitView
@@ -124,12 +140,16 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodeTypes }) => {
             fontSize: 13,
           }}
         >
-          {menu.node ? (
+          {menu.edge ? (
+            <>
+              <MenuItem onClick={handleDeleteEdge} danger>✂️ 删除连线</MenuItem>
+            </>
+          ) : menu.node ? (
             <>
               <MenuItem onClick={handleDuplicateNode}>🔁 复制节点</MenuItem>
               <MenuItem onClick={() => { selectNode(menu.node); closeMenu(); }}>⚙️ 配置</MenuItem>
               <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
-              <MenuItem onClick={handleDeleteNode} danger>🗑️ 删除</MenuItem>
+              <MenuItem onClick={handleDeleteNode} danger>🗑️ 删除节点</MenuItem>
             </>
           ) : (
             <>
