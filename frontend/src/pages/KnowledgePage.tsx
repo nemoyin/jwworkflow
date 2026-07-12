@@ -1,224 +1,130 @@
-import { useEffect, useState, useCallback } from 'react';
-import {
-  Typography,
-  Table,
-  Tag,
-  Button,
-  Upload,
-  Spin,
-  message,
-  Popconfirm,
-  Empty,
-  Space,
-} from 'antd';
-import {
-  DeleteOutlined,
-  ReloadOutlined,
-  SyncOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-  ClockCircleOutlined,
-  InboxOutlined,
-} from '@ant-design/icons';
-import type { UploadProps } from 'antd';
-import { api, KnowledgeDocument } from '../services/api';
+/** 知识库管理（支持目录分类） */
 
-const { Title } = Typography;
-const { Dragger } = Upload;
+import React, { useEffect, useState } from 'react';
+import { Card, Table, Tag, Button, Upload, message, Popconfirm, Typography, Space, Tree, Input, Modal } from 'antd';
+import { UploadOutlined, DeleteOutlined, FileOutlined, FolderOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { api } from '../services/api';
 
-/** Format file size in human-readable form */
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB'];
-  const base = 1024;
-  const unitIndex = Math.min(Math.floor(Math.log(bytes) / Math.log(base)), units.length - 1);
-  const value = bytes / Math.pow(base, unitIndex);
-  return `${value.toFixed(unitIndex > 0 ? 2 : 0)} ${units[unitIndex]}`;
+const { Text } = Typography;
+
+interface DocRecord {
+  id: string; name: string; content_type: string; file_size: number;
+  directory: string; status: string; created_at: string;
 }
 
-/** Format ISO date string to locale string */
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-/** Status tag with color and icon */
-const StatusTag = ({ status }: { status: string }) => {
-  const config: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
-    pending: {
-      color: 'orange',
-      icon: <ClockCircleOutlined />,
-      label: '待处理',
-    },
-    processing: {
-      color: 'processing',
-      icon: <SyncOutlined spin />,
-      label: '处理中',
-    },
-    ready: {
-      color: 'success',
-      icon: <CheckCircleOutlined />,
-      label: '已就绪',
-    },
-    failed: {
-      color: 'error',
-      icon: <CloseCircleOutlined />,
-      label: '处理失败',
-    },
-  };
-  const cfg = config[status] || { color: 'default', icon: null, label: status };
-  return (
-    <Tag icon={cfg.icon} color={cfg.color}>
-      {cfg.label}
-    </Tag>
-  );
-};
-
-const KnowledgePage = () => {
-  const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
+const KnowledgePage: React.FC = () => {
+  const [docs, setDocs] = useState<DocRecord[]>([]);
+  const [directories, setDirectories] = useState<string[]>(['/']);
+  const [currentDir, setCurrentDir] = useState('/');
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [dirModal, setDirModal] = useState(false);
+  const [newDir, setNewDir] = useState('');
 
-  const fetchDocuments = useCallback(async () => {
+  const loadDocs = async (dir: string) => {
     setLoading(true);
     try {
-      const res = await api.listDocuments();
-      setDocuments(res.documents);
-    } catch (err) {
-      message.error('获取文档列表失败');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      const params = dir !== '/' ? `?directory=${encodeURIComponent(dir)}` : '';
+      const data: any = await api.get(`/knowledge${params}`);
+      setDocs(data.documents || []);
+    } catch { setDocs([]); }
+    setLoading(false);
+  };
 
-  useEffect(() => {
-    fetchDocuments();
-  }, [fetchDocuments]);
+  const loadDirs = async () => {
+    try {
+      const data: any = await api.get('/knowledge/directories');
+      setDirectories(data.directories || ['/']);
+    } catch { }
+  };
+
+  useEffect(() => { loadDirs(); loadDocs('/'); }, []);
+
+  const handleUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('directory', currentDir);
+    try {
+      await api.post('/knowledge/upload', formData);
+      message.success(`已上传 ${file.name}`);
+      loadDocs(currentDir);
+      loadDirs();
+    } catch { message.error('上传失败'); }
+    return false;
+  };
 
   const handleDelete = async (id: string) => {
     try {
-      await api.deleteDocument(id);
-      message.success('文档已删除');
-      fetchDocuments();
-    } catch {
-      message.error('删除失败');
-    }
+      await api.delete(`/knowledge/${id}`);
+      message.success('已删除');
+      loadDocs(currentDir);
+    } catch { message.error('删除失败'); }
   };
 
-  const uploadProps: UploadProps = {
-    name: 'file',
-    multiple: false,
-    accept: '.pdf,.docx,.txt',
-    showUploadList: false,
-    customRequest: async ({ file, onSuccess, onError }) => {
-      setUploading(true);
-      try {
-        await api.uploadDocument(file as File);
-        onSuccess?.(null);
-        message.success('文档上传成功，正在处理');
-        fetchDocuments();
-      } catch (err: any) {
-        onError?.(err);
-        message.error(err?.message || '上传失败');
-      } finally {
-        setUploading(false);
-      }
-    },
+  const handleAddDir = async () => {
+    if (!newDir.trim()) return;
+    const dir = newDir.startsWith('/') ? newDir : `/${newDir}`;
+    if (!directories.includes(dir)) {
+      setDirectories([...directories, dir].sort());
+    }
+    setCurrentDir(dir);
+    setDirModal(false);
+    setNewDir('');
+    loadDocs(dir);
   };
 
   const columns = [
-    {
-      title: '文件名',
-      dataIndex: 'name',
-      key: 'name',
-      ellipsis: true,
-    },
-    {
-      title: '大小',
-      dataIndex: 'file_size',
-      key: 'file_size',
-      width: 120,
-      render: (size: number) => formatFileSize(size),
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: 130,
-      render: (status: string) => <StatusTag status={status} />,
-    },
-    {
-      title: '上传时间',
-      dataIndex: 'created_at',
-      key: 'created_at',
-      width: 180,
-      render: (date: string) => formatDate(date),
-    },
-    {
-      title: '操作',
-      key: 'actions',
-      width: 80,
-      render: (_: unknown, record: KnowledgeDocument) => (
-        <Popconfirm
-          title="确定删除此文档？"
-          onConfirm={() => handleDelete(record.id)}
-          okText="确定"
-          cancelText="取消"
-        >
-          <Button type="text" danger icon={<DeleteOutlined />} />
-        </Popconfirm>
-      ),
-    },
+    { title: '文件名', dataIndex: 'name', key: 'name', render: (n: string) => <><FileOutlined style={{ marginRight: 6 }} />{n}</> },
+    { title: '类型', dataIndex: 'content_type', key: 'type', render: (t: string) => <Tag>{t.split('/').pop() || t}</Tag> },
+    { title: '大小', dataIndex: 'file_size', key: 'size', render: (s: number) => s > 1024 ? `${(s/1024).toFixed(1)}KB` : `${s}B` },
+    { title: '目录', dataIndex: 'directory', key: 'dir', render: (d: string) => <Tag color="blue">{d}</Tag> },
+    { title: '状态', dataIndex: 'status', key: 'status', render: (s: string) => {
+      const colors: Record<string, string> = { ready: 'green', processing: 'blue', failed: 'red', pending: 'orange' };
+      return <Tag color={colors[s] || 'default'}>{s}</Tag>;
+    }},
+    { title: '操作', key: 'action', render: (_: any, r: DocRecord) => (
+      <Popconfirm title="确定删除？" onConfirm={() => handleDelete(r.id)}>
+        <Button size="small" danger icon={<DeleteOutlined />} />
+      </Popconfirm>
+    )},
   ];
 
+  const treeData = directories.map(d => ({
+    key: d,
+    title: d === '/' ? '📁 全部文档' : `📁 ${d.replace(/^\//, '').replace(/\/$/, '')}`,
+    icon: <FolderOutlined />,
+  }));
+
   return (
-    <div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 24,
-        }}
-      >
-        <Title level={2} style={{ margin: 0 }}>
-          知识库
-        </Title>
+    <div style={{ display: 'flex', gap: 16, height: 'calc(100vh - 120px)' }}>
+      <Card style={{ width: 240, flexShrink: 0, overflow: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <Text strong>目录</Text>
+          <Button size="small" icon={<PlusOutlined />} onClick={() => setDirModal(true)} />
+        </div>
+        <Tree treeData={treeData} selectedKeys={[currentDir]}
+          onSelect={(keys) => keys[0] && setCurrentDir(keys[0] as string) && loadDocs(keys[0] as string)}
+          style={{ fontSize: 13 }} />
+      </Card>
+
+      <Card style={{ flex: 1, overflow: 'auto' }} title={
+        <Space><span>知识库文档</span><Tag>{currentDir}</Tag></Space>
+      } extra={
         <Space>
-          <Button icon={<ReloadOutlined />} onClick={fetchDocuments} loading={loading}>
-            刷新
-          </Button>
+          <Button icon={<ReloadOutlined />} size="small" onClick={() => loadDocs(currentDir)}>刷新</Button>
+          <Upload accept=".pdf,.docx,.doc,.txt,.md" showUploadList={false} beforeUpload={handleUpload}>
+            <Button type="primary" icon={<UploadOutlined />} size="small">上传到当前目录</Button>
+          </Upload>
         </Space>
-      </div>
+      }>
+        <Table dataSource={docs} columns={columns} rowKey="id" loading={loading}
+          pagination={{ pageSize: 20, showSizeChanger: false }} size="small"
+          locale={{ emptyText: '暂无文档' }} />
+      </Card>
 
-      <div style={{ marginBottom: 24 }}>
-        <Dragger {...uploadProps} disabled={uploading}>
-          <p className="ant-upload-drag-icon">
-            {uploading ? <Spin size="large" /> : <InboxOutlined />}
-          </p>
-          <p className="ant-upload-text">
-            {uploading ? '正在上传...' : '点击或拖拽文件到此区域上传'}
-          </p>
-          <p className="ant-upload-hint">
-            支持 .pdf .docx .txt 格式，单文件上限 20MB
-          </p>
-        </Dragger>
-      </div>
-
-      <Table
-        dataSource={documents}
-        columns={columns}
-        rowKey="id"
-        loading={loading}
-        pagination={{ pageSize: 10, showSizeChanger: true, showTotal: (t) => `共 ${t} 条` }}
-        locale={{ emptyText: <Empty description="暂无文档，请上传文件" /> }}
-      />
+      <Modal title="新建目录" open={dirModal} onOk={handleAddDir} onCancel={() => setDirModal(false)}>
+        <Input placeholder="目录名称（如 /法规库）" value={newDir}
+          onChange={e => setNewDir(e.target.value)} onPressEnter={handleAddDir} />
+      </Modal>
     </div>
   );
 };

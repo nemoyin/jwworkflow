@@ -21,10 +21,11 @@ router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
 @router.post("/upload", status_code=201, response_model=DocumentResponse)
 async def upload_document(
     file: UploadFile = File(...),
+    directory: str = "/",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """上传文档到知识库"""
+    """上传文档到知识库（指定目录，默认根目录 /）"""
     # Validate file size
     max_bytes = settings.MAX_FILE_SIZE_MB * 1024 * 1024
     file.file.seek(0, 2)  # seek to end
@@ -64,6 +65,7 @@ async def upload_document(
         file_path=file_path,
         content_type=content_type,
         file_size=file_size,
+        directory=directory,
         status="pending",
     )
     db.add(doc)
@@ -86,23 +88,22 @@ async def upload_document(
 
 @router.get("", response_model=DocumentListResponse)
 async def list_documents(
+    directory: str = "",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """获取知识库文档列表"""
-    # Count total
+    """获取知识库文档列表（可按目录筛选）"""
+    base_filter = [Document.tenant_id == current_user.tenant_id]
+    if directory:
+        base_filter.append(Document.directory == directory)
+
     count_result = await db.execute(
-        select(func.count(Document.id)).where(
-            Document.tenant_id == current_user.tenant_id
-        )
+        select(func.count(Document.id)).where(*base_filter)
     )
     total = count_result.scalar() or 0
 
-    # Fetch documents
     result = await db.execute(
-        select(Document)
-        .where(Document.tenant_id == current_user.tenant_id)
-        .order_by(Document.created_at.desc())
+        select(Document).where(*base_filter).order_by(Document.created_at.desc())
     )
     documents = result.scalars().all()
 
@@ -113,6 +114,7 @@ async def list_documents(
                 name=d.name,
                 content_type=d.content_type,
                 file_size=d.file_size,
+                directory=d.directory or "/",
                 status=d.status,
                 error=d.error,
                 created_at=d.created_at.isoformat(),
@@ -122,6 +124,24 @@ async def list_documents(
         ],
         total=total,
     )
+
+
+@router.get("/directories")
+async def list_directories(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """获取所有文档目录"""
+    from sqlalchemy import distinct
+    result = await db.execute(
+        select(distinct(Document.directory))
+        .where(Document.tenant_id == current_user.tenant_id)
+    )
+    dirs = [row[0] for row in result.all() if row[0]]
+    # 确保根目录始终存在
+    if "/" not in dirs:
+        dirs.insert(0, "/")
+    return {"directories": sorted(dirs)}
 
 
 @router.delete("/{document_id}", status_code=204)

@@ -7,6 +7,7 @@ class DocumentResponse(BaseModel):
     name: str
     content_type: str
     file_size: int
+    directory: str = "/"
     status: str
     error: Optional[str] = None
     created_at: str

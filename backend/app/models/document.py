@@ -16,6 +16,7 @@ class Document(Base):
     content: Mapped[str] = Column(Text, nullable=True)
     content_type: Mapped[str] = Column(String(128), default="application/octet-stream")
     file_size: Mapped[int] = Column(Integer, default=0)
+    directory: Mapped[str] = Column(String(128), default="/")  # 目录路径，如 "/法规库/"
     status: Mapped[str] = Column(String(32), default="pending")  # pending | processing | ready | failed
     error: Mapped[str] = Column(Text, nullable=True)
     created_at: Mapped[datetime] = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
