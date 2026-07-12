@@ -42,9 +42,8 @@ const KnowledgePage: React.FC = () => {
   const handleUpload = async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('directory', currentDir);
     try {
-      await api.uploadFormData('/knowledge/upload', formData);
+      await api.uploadFormData('/knowledge/upload?directory=' + encodeURIComponent(currentDir), formData);
       message.success(`已上传 ${file.name}`);
       loadDocs(currentDir);
       loadDirs();
