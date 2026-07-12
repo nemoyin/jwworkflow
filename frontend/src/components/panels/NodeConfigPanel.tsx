@@ -13,6 +13,7 @@ import { useWorkflowStore } from '../../stores/workflowStore';
 import { nodeColorMap, nodeLabelMap } from '../nodes';
 import { api } from '../../services/api';
 import { LinkOutlined } from '@ant-design/icons';
+import PromptEditor from './PromptEditor';
 
 const { Text, Title } = Typography;
 const { TextArea } = Input;
@@ -123,30 +124,18 @@ const NodeConfigPanel: React.FC = () => {
                 placeholder="选择模型"
               />
             </div>
-            <div style={{ marginBottom: 12 }}>
-              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
-                系统提示词
-              </Text>
-              <TextArea
-                size="small"
-                rows={3}
-                placeholder="输入系统提示词..."
-                value={config.system_prompt || ''}
-                onChange={(e) => updateConfig('system_prompt', e.target.value)}
-              />
-            </div>
-            <div style={{ marginBottom: 12 }}>
-              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
-                用户提示词
-              </Text>
-              <TextArea
-                size="small"
-                rows={3}
-                placeholder="输入用户提示词..."
-                value={config.prompt || ''}
-                onChange={(e) => updateConfig('prompt', e.target.value)}
-              />
-            </div>
+            <PromptEditor
+              label="系统提示词"
+              value={config.system_prompt || ''}
+              onChange={(v) => updateConfig('system_prompt', v)}
+              variables={['input.*']}
+            />
+            <PromptEditor
+              label="用户提示词"
+              value={config.prompt || ''}
+              onChange={(v) => updateConfig('prompt', v)}
+              variables={['input.*']}
+            />
             <div style={{ marginBottom: 12 }}>
               <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
                 温度 (Temperature)
@@ -577,18 +566,12 @@ const NodeConfigPanel: React.FC = () => {
                 placeholder="选择模型"
               />
             </div>
-            <div style={{ marginBottom: 12 }}>
-              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
-                系统提示词
-              </Text>
-              <TextArea
-                size="small"
-                rows={4}
-                placeholder="Agent 系统提示词..."
-                value={config.system_prompt || ''}
-                onChange={(e) => updateConfig('system_prompt', e.target.value)}
-              />
-            </div>
+            <PromptEditor
+              label="系统提示词"
+              value={config.system_prompt || ''}
+              onChange={(v) => updateConfig('system_prompt', v)}
+              variables={['input.*']}
+            />
             <div style={{ marginBottom: 12 }}>
               <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
                 工具配置 (JSON)
