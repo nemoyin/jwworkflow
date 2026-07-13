@@ -279,6 +279,42 @@ BUILTIN_TEMPLATES: list[dict] = [
             ]
         }
     },
+    {
+        "name": "AI数据分析(CodeNode)",
+        "description": "上传大数据文件，AI 自动生成 pandas 代码执行分析，返回分析结论。适合万行级以上大数据集。",
+        "category": "analysis",
+        "icon": "CodeOutlined",
+        "sort_order": 6,
+        "is_builtin": True,
+        "dag_definition": {
+            "nodes": [
+                {"id": "n1", "type": "input", "config": {"fields": [
+                    {"name": "file_path", "type": "text", "label": "文件路径"},
+                    {"name": "question", "type": "text", "label": "分析问题"}
+                ]}},
+                {"id": "n2", "type": "excel-parser", "config": {"file_path": "{{ input.file_path }}", "max_rows": 5}},
+                {"id": "n3", "type": "llm", "config": {
+                    "model": "deepseek-chat",
+                    "system_prompt": "你是数据分析师。用户上传了文件，结构如下：\n列名：{{ n2.columns }}\n数据概况：{{ n2.summary }}\n\n用户问题：{{ input.question }}\n\n请生成 Python pandas 代码来分析数据。代码中直接使用 df 变量（已读取）。\n\n重要规则：\n1. 直接使用 df 变量操作数据，不要重新读取文件\n2. 不要构造示例数据\n3. 代码必须将最终结果赋值给 result 变量\n4. result 可以是字符串、字典或列表\n5. 只输出代码，不要解释",
+                    "prompt": "根据列信息 {{ n2.columns }} 和数据概况 {{ n2.summary }}，生成分析代码。问题：{{ input.question }}"
+                }},
+                {"id": "n4", "type": "code", "config": {"code": "", "file_path": "{{ input.file_path }}"}},
+                {"id": "n5", "type": "llm", "config": {
+                    "model": "deepseek-chat",
+                    "system_prompt": "你是数据分析助手。以下是代码执行结果：\n{{ n4 }}\n\n请根据结果回答用户的原始问题。直接给出结论，不要提及代码执行过程。",
+                    "prompt": "{{ input.question }}"
+                }},
+                {"id": "n6", "type": "output", "config": {"variables": [{"name": "answer", "source": "n5.output"}, {"name": "code_result", "source": "n4"}]}}
+            ],
+            "edges": [
+                {"id": "e1", "source": "n1", "target": "n2"},
+                {"id": "e2", "source": "n2", "target": "n3"},
+                {"id": "e3", "source": "n3", "target": "n4"},
+                {"id": "e4", "source": "n4", "target": "n5"},
+                {"id": "e5", "source": "n5", "target": "n6"}
+            ]
+        }
+    },
 ]
 
 
