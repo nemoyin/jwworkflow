@@ -50,7 +50,16 @@ class ExcelParserNodeExecutor(BaseNodeExecutor):
                 sn = sheet_name if sheet_name else (sheet_names[0] if sheet_names else 0)
                 df = pd.read_excel(file_path, sheet_name=sn, dtype=str)
             elif ext == ".csv":
-                df = pd.read_csv(file_path, dtype=str, encoding="utf-8", encoding_errors="replace")
+                # Auto-detect encoding (common Chinese encodings)
+                df = None
+                for enc in ["utf-8", "gbk", "gb2312", "gb18030", "utf-16"]:
+                    try:
+                        df = pd.read_csv(file_path, dtype=str, encoding=enc)
+                        break
+                    except (UnicodeDecodeError, UnicodeError):
+                        continue
+                if df is None:
+                    df = pd.read_csv(file_path, dtype=str, encoding="utf-8", encoding_errors="replace")
                 sheet_names = []
             else:
                 return {"error": f"不支持的文件类型: {ext}", "row_count": 0, "columns": [], "data_text": ""}
