@@ -3,6 +3,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Input, Button, Typography, Spin, Tag, Space, message, Modal, Upload } from 'antd';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { SendOutlined, RobotOutlined, UserOutlined, CodeOutlined, ShareAltOutlined, ClearOutlined, UploadOutlined, FileExcelOutlined } from '@ant-design/icons';
 import { api } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
@@ -163,8 +165,12 @@ const WorkflowPreviewPage: React.FC = () => {
                 <RobotOutlined style={{ color: '#fff', fontSize: 16 }} />
               </div>
             )}
-            <div style={{ maxWidth: '70%', padding: '10px 14px', borderRadius: 12, background: msg.role === 'user' ? '#1677ff' : '#fff', color: msg.role === 'user' ? '#fff' : '#333', fontSize: 14, lineHeight: 1.6, boxShadow: '0 1px 2px rgba(0,0,0,0.06)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-              {msg.content}
+            <div style={{ maxWidth: '70%', padding: '10px 14px', borderRadius: 12, background: msg.role === 'user' ? '#1677ff' : '#fff', color: msg.role === 'user' ? '#fff' : '#333', fontSize: 14, lineHeight: 1.6, boxShadow: '0 1px 2px rgba(0,0,0,0.06)', wordBreak: 'break-word' }}>
+              {msg.role === 'assistant' ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+              ) : (
+                <span style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</span>
+              )}
             </div>
             {msg.role === 'user' && (
               <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#52c41a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
