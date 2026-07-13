@@ -258,6 +258,27 @@ BUILTIN_TEMPLATES: list[dict] = [
             ],
         },
     },
+    {
+        "name": "AI问数(Excel)",
+        "description": "上传 Excel/CSV 文件，用自然语言提问，AI 自动分析数据返回结果。",
+        "category": "analysis",
+        "icon": "TableOutlined",
+        "sort_order": 5,
+        "is_builtin": True,
+        "dag_definition": {
+            "nodes": [
+                {"id": "n1", "type": "input", "config": {"fields": [{"name": "question", "type": "text", "label": "请输入问题"}, {"name": "file_path", "type": "text", "label": "文件路径"}]}},
+                {"id": "n2", "type": "excel-parser", "config": {"file_path": "{{ input.file_path }}", "max_rows": 100}},
+                {"id": "n3", "type": "llm", "config": {"model": "deepseek-chat", "system_prompt": "你是数据分析助手。以下是Excel数据：\n{{ n2.data_text }}\n\n概况: {{ n2.summary }}", "prompt": "{{ input.question }}\n\n请基于以上数据进行分析。"}},
+                {"id": "n4", "type": "output", "config": {"variables": [{"name": "analysis", "source": "n3.output"}, {"name": "summary", "source": "n2.summary"}]}}
+            ],
+            "edges": [
+                {"id": "e1", "source": "n1", "target": "n2"},
+                {"id": "e2", "source": "n2", "target": "n3"},
+                {"id": "e3", "source": "n3", "target": "n4"}
+            ]
+        }
+    },
 ]
 
 

@@ -25,6 +25,7 @@ const nodeTypes: NodeTypeItem[] = [
   { type: 'http-request', label: 'HTTP 请求', color: '#fa8c16', description: 'HTTP API 调用' },
   { type: 'doc-extractor', label: '文档提取', color: '#fa8c16', description: 'PDF/DOCX/TXT 内容提取' },
   { type: 'variable-aggregator', label: '变量聚合', color: '#fa8c16', description: '合并多分支输出' },
+  { type: 'excel-parser', label: 'Excel解析', color: '#fa8c16', description: '读取Excel/CSV文件并解析为结构化数据' },
   { type: 'rule-engine', label: '规则引擎', color: '#eb2f96', description: '条件规则判定与阈值检查' },
 
   // Logic / Purple

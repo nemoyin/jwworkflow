@@ -55,6 +55,7 @@ export const nodeTypes: NodeTypes = {
   'rule-engine': RuleEngineNode,
   answer: AnswerNode,
   webhook: WebhookNode,
+  'excel-parser': InputNode,
 };
 
 /**
@@ -77,6 +78,7 @@ export const nodeColorMap: Record<string, string> = {
   'rule-engine': '#eb2f96',
   answer: '#52c41a',
   webhook: '#52c41a',
+  'excel-parser': '#fa8c16',
 };
 
 /**
@@ -99,4 +101,5 @@ export const nodeLabelMap: Record<string, string> = {
   'rule-engine': '规则引擎',
   answer: 'Answer',
   webhook: 'Webhook',
+  'excel-parser': 'Excel解析',
 };

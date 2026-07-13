@@ -420,6 +420,32 @@ const NodeConfigPanel: React.FC = () => {
           </>
         );
 
+      case 'excel-parser':
+        return (
+          <>
+            <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>文件路径来源</Text>
+              <Input size="small" placeholder="例如: {{ input.file_path }}"
+                value={config.file_path || ''}
+                onChange={(e) => updateConfig('file_path', e.target.value)} />
+              <Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                上游Input节点上传后自动传入
+              </Text>
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>工作表名</Text>
+              <Input size="small" placeholder="默认第一个工作表"
+                value={config.sheet_name || ''}
+                onChange={(e) => updateConfig('sheet_name', e.target.value)} />
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>最大行数</Text>
+              <InputNumber size="small" min={0} max={100000} style={{ width: '100%' }}
+                value={config.max_rows ?? 0} onChange={(v) => updateConfig('max_rows', v)} />
+            </div>
+          </>
+        );
+
       case 'answer':
         return (
           <div style={{ marginBottom: 12 }}>

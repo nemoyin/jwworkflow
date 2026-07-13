@@ -16,6 +16,7 @@ from app.api import dsl as dsl_router
 from app.api import analytics as analytics_router
 from app.api import mcp as mcp_router
 from app.api import tools as tools_router
+from app.api import workflow_upload as workflow_upload_router
 from app.config import settings
 from app.database import engine, Base
 
@@ -65,6 +66,7 @@ app.include_router(dsl_router.router)
 app.include_router(analytics_router.router)
 app.include_router(mcp_router.router)
 app.include_router(tools_router.router)
+app.include_router(workflow_upload_router.router)
 
 
 @app.get("/health")
