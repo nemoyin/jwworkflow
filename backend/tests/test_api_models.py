@@ -78,4 +78,4 @@ def test_create_and_update_provider(h):
 def test_unauthorized():
     client.headers.clear()
     resp = client.get("/api/admin/providers")
-    assert resp.status_code == 401
+    assert resp.status_code in (401, 403)

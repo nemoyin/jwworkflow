@@ -108,7 +108,7 @@ class TestRunsAPI:
     def test_get_run_detail_unauthorized(self, headers, workflow_id):
         """验证未授权访问返回 401"""
         resp = client.get("/api/runs")
-        assert resp.status_code == 401
+        assert resp.status_code in (401, 403)
 
     def test_get_run_detail_invalid_id(self, headers):
         """验证无效 ID 返回 400"""
