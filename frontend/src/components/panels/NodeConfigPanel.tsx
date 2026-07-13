@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import {
   Typography,
   Input,
@@ -41,17 +41,20 @@ const NodeConfigPanel: React.FC = () => {
       .catch(() => {});
   }, []);
 
+  const localConfig = useRef<Record<string, any>>({});
+  // Sync local config when selected node changes
+  if (selectedNode) {
+    localConfig.current = { ...(selectedNode.data.config || {}) };
+  }
+
   const updateConfig = useCallback(
     (key: string, value: any) => {
       const node = useWorkflowStore.getState().selectedNode;
       if (!node) return;
-      const newConfig = {
-        ...(node.data.config || {}),
-        [key]: value,
-      };
-      useWorkflowStore.getState().updateNodeConfig(node.id, newConfig);
+      localConfig.current = { ...localConfig.current, [key]: value };
+      useWorkflowStore.getState().updateNodeConfig(node.id, { ...localConfig.current });
     },
-    []  // no deps — reads fresh state from store each time
+    []
   );
 
   if (!selectedNode) {
@@ -73,7 +76,7 @@ const NodeConfigPanel: React.FC = () => {
   }
 
   const nodeType = selectedNode.type || '';
-  const config = selectedNode.data.config || {};
+  const config = localConfig.current;
   const color = nodeColorMap[nodeType] || '#1677ff';
   const label = nodeLabelMap[nodeType] || nodeType;
 
@@ -491,7 +494,7 @@ const NodeConfigPanel: React.FC = () => {
   };
 
   return (
-    <div style={{ width: 300, borderLeft: '1px solid #f0f0f0', padding: 16, background: '#fafafa', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div key={selectedNode?.id || 'none'} style={{ width: 300, borderLeft: '1px solid #f0f0f0', padding: 16, background: '#fafafa', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 8, borderBottom: `2px solid ${color}`, marginBottom: 12 }}>
         <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
         <Title level={5} style={{ margin: 0, fontSize: 14 }}>{label}</Title>
