@@ -10,9 +10,20 @@ class ExcelParserNodeExecutor(BaseNodeExecutor):
     """Excel 解析节点：读取 Excel/CSV 文件，输出结构化 JSON + Markdown 表格"""
 
     def execute(self, ctx: ExecutionContext, config: dict) -> dict:
-        file_path = config.get("file_path", "")
-        sheet_name = config.get("sheet_name", None)  # None = first sheet
-        max_rows = config.get("max_rows", 0)  # 0 = all
+        # Resolve template variables in config (e.g. {{ input.file_path }})
+        resolved_config = {}
+        for k, v in config.items():
+            if isinstance(v, str) and "{{" in v:
+                try:
+                    resolved_config[k] = ctx.resolve_variable(v)
+                except KeyError:
+                    resolved_config[k] = v
+            else:
+                resolved_config[k] = v
+
+        file_path = resolved_config.get("file_path", "")
+        sheet_name = resolved_config.get("sheet_name", None)
+        max_rows = resolved_config.get("max_rows", 0)
 
         # Try to get file_path from upstream input node
         if not file_path:
