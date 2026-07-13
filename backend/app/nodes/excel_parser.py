@@ -76,13 +76,12 @@ class ExcelParserNodeExecutor(BaseNodeExecutor):
         display_rows = len(display_df)
 
         columns = list(df.columns)
-        # 决定传给 LLM 的数据行数（最多 50 行，避免 Token 超限）
-        llm_rows = min(display_rows, 50)
+        # 传给 LLM 的数据行数（全部数据）
         header = "| " + " | ".join(str(c) for c in columns) + " |"
         separator = "| " + " | ".join(["---"] * len(columns)) + " |"
         rows_text = "\n".join(
             "| " + " | ".join(str(v) if pd.notna(v) else "" for v in row) + " |"
-            for _, row in display_df.head(llm_rows).iterrows()
+            for _, row in display_df.iterrows()
         )
         data_text = f"{header}\n{separator}\n{rows_text}"
 
@@ -92,8 +91,7 @@ class ExcelParserNodeExecutor(BaseNodeExecutor):
         # Basic summary
         null_counts = df.isnull().sum().to_dict()
         dtypes = {str(c): str(df[c].dtype) for c in columns}
-        shown = min(total_rows, llm_rows)
-        summary = f"{total_rows} 行 × {len(columns)} 列，展示了前 {shown} 行数据"
+        summary = f"{total_rows} 行 × {len(columns)} 列"
 
         return {
             "columns": columns,
