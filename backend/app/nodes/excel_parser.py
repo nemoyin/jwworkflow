@@ -72,31 +72,39 @@ class ExcelParserNodeExecutor(BaseNodeExecutor):
 
         # Convert to preview + text
         total_rows = len(df)
-        display_df = df.head(max_rows) if max_rows > 0 else df
-        display_rows = len(display_df)
+
+        # 控制传给 LLM 的行数（max_rows=0 表示不限制）
+        llm_limit = max_rows if max_rows > 0 else total_rows
+        llm_rows = min(total_rows, llm_limit)
+        display_df = df.head(llm_rows)
 
         columns = list(df.columns)
-        # 传给 LLM 的数据行数（全部数据）
         header = "| " + " | ".join(str(c) for c in columns) + " |"
         separator = "| " + " | ".join(["---"] * len(columns)) + " |"
         rows_text = "\n".join(
             "| " + " | ".join(str(v) if pd.notna(v) else "" for v in row) + " |"
             for _, row in display_df.iterrows()
         )
-        data_text = f"{header}\n{separator}\n{rows_text}"
+
+        # 如果截断了，在表格开头注明
+        is_truncated = llm_rows < total_rows
+        truncated_note = f"\n> ⚠️ 数据共 {total_rows} 行，仅展示前 {llm_rows} 行。如需完整分析请使用 CodeNode 做聚合。\n" if is_truncated else ""
+        data_text = f"{truncated_note}{header}\n{separator}\n{rows_text}"
 
         # Build preview JSON (仅前 20 行用于前端展示)
-        preview = display_df.head(20).to_dict(orient="records")
+        preview = df.head(20).to_dict(orient="records")
 
         # Basic summary
         null_counts = df.isnull().sum().to_dict()
         dtypes = {str(c): str(df[c].dtype) for c in columns}
         summary = f"{total_rows} 行 × {len(columns)} 列"
+        if is_truncated:
+            summary += f"，展示了前 {llm_rows} 行"
 
         return {
             "columns": columns,
             "row_count": total_rows,
-            "display_rows": display_rows,
+            "display_rows": llm_rows,
             "preview": preview,
             "data_text": data_text,
             "summary": summary,
