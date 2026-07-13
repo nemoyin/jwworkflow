@@ -159,7 +159,7 @@ class RAGService:
 
         if not chunks:
             doc.status = "ready"
-            doc.content = raw_text
+            doc.content = _sanitize_text(raw_text)
             await db.flush()
             return
 
@@ -169,13 +169,13 @@ class RAGService:
             emb = Embedding(
                 document_id=doc.id,
                 chunk_index=idx,
-                chunk_text=chunk_text,
+                chunk_text=_sanitize_text(chunk_text),
                 embedding=vector,
                 tenant_id=doc.tenant_id,
             )
             db.add(emb)
 
-        doc.content = raw_text
+        doc.content = _sanitize_text(raw_text)
         doc.status = "ready"
         await db.flush()
 
