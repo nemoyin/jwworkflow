@@ -34,3 +34,4 @@ class RunResponse(BaseModel):
     error: str | None = None
     duration_ms: int | None = None
     created_at: str
+    steps: list[dict] | None = None

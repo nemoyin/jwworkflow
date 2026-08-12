@@ -17,6 +17,8 @@ from app.nodes.rule_engine import RuleEngineNodeExecutor
 from app.nodes.answer_node import AnswerNodeExecutor
 from app.nodes.webhook_node import WebhookNodeExecutor
 from app.nodes.excel_parser import ExcelParserNodeExecutor
+from app.nodes.intent_classifier import IntentClassifierNodeExecutor
+from app.nodes.query_executor import QueryExecutorNodeExecutor
 
 # 注册所有内置节点
 register_node(NODE_REGISTRY, "input", InputNodeExecutor)
@@ -36,6 +38,8 @@ register_node(NODE_REGISTRY, "rule-engine", RuleEngineNodeExecutor)
 register_node(NODE_REGISTRY, "answer", AnswerNodeExecutor)
 register_node(NODE_REGISTRY, "webhook", WebhookNodeExecutor)
 register_node(NODE_REGISTRY, "excel-parser", ExcelParserNodeExecutor)
+register_node(NODE_REGISTRY, "intent-classifier", IntentClassifierNodeExecutor)
+register_node(NODE_REGISTRY, "query-executor", QueryExecutorNodeExecutor)
 
 __all__ = [
     "BaseNodeExecutor", "NODE_REGISTRY", "register_node", "get_node",
@@ -49,4 +53,7 @@ __all__ = [
     "RuleEngineNodeExecutor",
     "AnswerNodeExecutor",
     "WebhookNodeExecutor",
+    "ExcelParserNodeExecutor",
+    "IntentClassifierNodeExecutor",
+    "QueryExecutorNodeExecutor",
 ]

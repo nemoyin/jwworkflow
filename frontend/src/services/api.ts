@@ -1,5 +1,17 @@
 const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public body: any = null,
+    public requestId?: string,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 class ApiClient {
   private token: string | null = null;
 
@@ -14,9 +26,32 @@ class ApiClient {
       headers,
       body: body ? JSON.stringify(body) : undefined,
     });
-    if (!res.ok) throw new Error(`API error: ${res.status}`);
+
+    // Try to read response body regardless of status
+    let responseBody: any = null;
+    try {
+      responseBody = await res.json();
+    } catch {
+      try {
+        responseBody = await res.text();
+      } catch {
+        responseBody = null;
+      }
+    }
+
+    if (!res.ok) {
+      const detail = responseBody?.message || responseBody?.detail || responseBody || `API error: ${res.status}`;
+      const requestId = responseBody?.request_id;
+      throw new ApiError(
+        typeof detail === 'string' ? detail : `请求失败 (${res.status})`,
+        res.status,
+        responseBody,
+        requestId,
+      );
+    }
+
     if (res.status === 204) return undefined as T;
-    return res.json();
+    return responseBody as T;
   }
 
   get<T>(path: string) { return this.request<T>('GET', path); }
@@ -35,7 +70,7 @@ class ApiClient {
     });
     if (!res.ok) {
       const text = await res.text().catch(() => '');
-      throw new Error(`Upload failed: ${res.status} ${text}`);
+      throw new ApiError(`上传失败: ${res.status} ${text.slice(0, 200)}`, res.status, text);
     }
     return res.json();
   }

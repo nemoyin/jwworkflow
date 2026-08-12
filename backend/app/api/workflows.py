@@ -267,15 +267,16 @@ async def run_workflow(
         edges=wf.dag_definition.get("edges", []),
     )
     executor = WorkflowExecutor(dag, NODE_REGISTRY, db=db, tenant_id=current_user.tenant_id)
-    # 如果是调试模式，传入 debug 回调
-    debug_callback = None
-    if body.pop("_debug", False):
-        debug_events = []
-        debug_callback = lambda evt: debug_events.append(evt)
 
     start_time = time.time()
+    step_events = []
+
+    # 注册步骤回调：每次节点状态变化时记录
+    def step_callback(evt):
+        step_events.append(evt)
+
     try:
-        output = executor.execute(body)
+        output = executor.execute(body, progress_callback=step_callback)
         duration = int((time.time() - start_time) * 1000)
         status_val = "success"
         error_text = None
@@ -285,11 +286,11 @@ async def run_workflow(
         output = {}
         error_text = str(e)
 
-    # 收集节点执行结果快照
-    node_results = []
-    for evt in executor.get_events():
-        if evt["type"] in ("node_start", "node_done", "node_error"):
-            node_results.append(evt)
+    # 如果回调没捕获到（比如异常提前退出），兜底收集
+    if not step_events:
+        for evt in executor.get_events():
+            if evt["type"] in ("node_start", "node_done", "node_error"):
+                step_events.append(evt)
 
     # 保存运行记录
     run = Run(
@@ -301,7 +302,7 @@ async def run_workflow(
         output=output,
         error=error_text,
         duration_ms=duration,
-        node_results=node_results,
+        node_results=step_events,
     )
     db.add(run)
     await db.flush()
@@ -316,4 +317,5 @@ async def run_workflow(
         result=run.output,
         duration_ms=run.duration_ms,
         created_at=run.created_at.isoformat(),
+        steps=step_events,
     )

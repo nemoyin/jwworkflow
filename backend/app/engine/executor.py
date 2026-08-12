@@ -31,9 +31,11 @@ class WorkflowExecutor:
         self._tenant_id = tenant_id
         self._events: list[SSEEvent] = []
 
-    def execute(self, inputs: dict, context: ExecutionContext = None) -> dict:
+    def execute(self, inputs: dict, context: ExecutionContext = None, progress_callback=None) -> dict:
         ctx = context or ExecutionContext(inputs, db=self._db, tenant_id=self._tenant_id)
         self._add_event("workflow_start", {"inputs": inputs})
+        if progress_callback:
+            progress_callback({"type": "workflow_start", "node_id": "", "node_type": "workflow", "data": {"inputs": inputs}})
         levels = topological_sort(self.dag)
         output_result: dict = {}
 
@@ -42,7 +44,7 @@ class WorkflowExecutor:
                 # Parallel: run all nodes in this level concurrently
                 with cf.ThreadPoolExecutor(max_workers=min(len(level), 8)) as pool:
                     fut_map: dict[cf.Future[Any], dict] = {
-                        pool.submit(self._run_node, node, ctx): node for node in level
+                        pool.submit(self._run_node, node, ctx, progress_callback): node for node in level
                     }
                     for future in cf.as_completed(fut_map):
                         node = fut_map[future]
@@ -51,14 +53,16 @@ class WorkflowExecutor:
                             output_result = result
             else:
                 for node in level:
-                    result = self._run_node(node, ctx)
+                    result = self._run_node(node, ctx, progress_callback)
                     if node["type"] == "output":
                         output_result = result
 
         self._add_event("workflow_done", {"output": output_result})
+        if progress_callback:
+            progress_callback({"type": "workflow_done", "node_id": "", "node_type": "workflow", "data": {"output": output_result}})
         return output_result
 
-    def _run_node(self, node: dict, ctx: ExecutionContext) -> Any:
+    def _run_node(self, node: dict, ctx: ExecutionContext, progress_callback=None) -> Any:
         node_type = node["type"]
         executor_cls = self.node_registry.get(node_type)
         if executor_cls is None:
@@ -66,13 +70,19 @@ class WorkflowExecutor:
         executor = executor_cls()
         config = node.get("config", {})
         self._add_event("node_start", {"node_id": node["id"], "node_type": node_type})
+        if progress_callback:
+            progress_callback({"type": "node_start", "node_id": node["id"], "node_type": node_type, "data": {}})
         try:
             result = executor.execute(ctx, config)
             ctx.set(node["id"], result)
             self._add_event("node_done", {"node_id": node["id"], "output": result})
+            if progress_callback:
+                progress_callback({"type": "node_done", "node_id": node["id"], "node_type": node_type, "data": {"output": result}})
             return result
         except Exception as e:
             self._add_event("node_error", {"node_id": node["id"], "error": str(e)})
+            if progress_callback:
+                progress_callback({"type": "node_error", "node_id": node["id"], "node_type": node_type, "data": {"error": str(e)}})
             raise
 
     def get_events(self) -> list[dict]:

@@ -158,6 +158,59 @@ class CodeNodeExecutor(BaseNodeExecutor):
         elif hasattr(_pd, "Series") and isinstance(result, _pd.Series):
             result = result.to_dict()
 
+        # Recursively convert non-JSON-serializable types (pandas Timestamp, NaT,
+        # numpy int/float, etc.) to their string/native equivalents.
+        # This must run AFTER pandas-to-dict conversion above.
+        result = _make_json_safe(result)
+
         if isinstance(result, dict):
             return result
         return {"output": result}
+
+
+def _make_json_safe(obj):
+    """Recursively convert objects to JSON-safe types.
+
+    Handles: pd.Timestamp, pd.NaT, datetime, date, numpy scalars,
+    and nested dicts/lists containing them.
+    """
+    import datetime as _dt
+
+    # pandas Timestamp → ISO string
+    if hasattr(_pd, "NaT") and obj is _pd.NaT:
+        return None
+    if hasattr(_pd, "Timestamp") and isinstance(obj, _pd.Timestamp):
+        return obj.isoformat()
+
+    # Standard Python datetime / date → ISO string
+    if isinstance(obj, (_dt.datetime, _dt.date)):
+        return obj.isoformat()
+
+    # numpy scalar types → native Python types
+    try:
+        import numpy as _np
+        if isinstance(obj, _np.integer):
+            return int(obj)
+        if isinstance(obj, _np.floating):
+            return float(obj)
+        if isinstance(obj, _np.bool_):
+            return bool(obj)
+        if isinstance(obj, _np.ndarray):
+            return _make_json_safe(obj.tolist())
+    except ImportError:
+        pass
+
+    # dict / list / tuple → recurse
+    if isinstance(obj, dict):
+        return {_make_json_safe(k): _make_json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_make_json_safe(v) for v in obj]
+
+    # Python float NaN / Infinity → None (json.dumps outputs NaN which is invalid JSON)
+    if isinstance(obj, float):
+        import math as _math
+        if _math.isnan(obj) or _math.isinf(obj):
+            return None
+
+    # Everything else (int, float, str, bool, None) is already JSON-safe
+    return obj

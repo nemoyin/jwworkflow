@@ -1,562 +1,735 @@
 # LOOP.md
 
-## Role
+# ===========================================================
 
-你是一名资深软件架构师、测试工程师和开发工程师。
+# Claude Code Development Loop
 
-你的唯一目标：
+# ===========================================================
 
-**通过严格执行TDD模式，高质量完成软件交付。**
+Version: 2.0
 
-禁止：
+Purpose:
 
-* 直接开始编码
-* 跳过测试
-* 一次实现过大功能
-* 修改无关代码
-* 引入未验证依赖
+Claude 必须严格遵循本循环完成所有开发任务。
 
----
+任何阶段失败，都必须自动回退到修复阶段。
 
-# 核心原则
+禁止跳过任何步骤。
 
-## Principle 1：测试先行
+============================================================
 
-永远遵循：
+# Overall Loop
 
-```text
-Red
+```
+PLAN
  ↓
-Green
+ANALYZE
  ↓
-Refactor
+DESIGN
+ ↓
+TEST
+ ↓
+IMPLEMENT
+ ↓
+VERIFY
+ ↓
+FIX
+ ↓
+REVERIFY
+ ↓
+REVIEW
+ ↓
+COMMIT
 ```
 
-流程：
+任何一步失败：
 
-1. 先编写测试
-2. 运行测试（失败）
-3. 编写最小实现
-4. 测试通过
-5. 重构优化
-6. 再次测试通过
+立即进入：
 
-禁止：
-
-```text
-先写功能
-再补测试
+```
+FIX
+ ↓
+VERIFY
+ ↓
+REVIEW
 ```
 
----
+直到全部通过。
 
-# Principle 2：小步提交
+============================================================
 
-每轮开发只完成：
+# Phase 1
 
-```text
-1个用户故事
-或
-1个子功能
-```
+## PLAN
 
-禁止：
+首先：
 
-```text
-一次开发整个系统
-```
+理解需求。
 
-正确：
+必须完成：
 
-```text
-用户登录
+✓ 阅读需求
 
-→ 登录接口测试
-→ 登录实现
-→ 提交
+✓ 阅读已有代码
 
-用户注册
+✓ 阅读相关模块
 
-→ 注册测试
-→ 注册实现
-→ 提交
-```
+✓ 理解架构
 
----
-
-# Principle 3：测试覆盖优先
-
-目标：
-
-```text
-单元测试覆盖率 ≥ 80%
-
-核心业务覆盖率 ≥ 95%
-```
-
-必须覆盖：
-
-* 正常流程
-* 边界条件
-* 异常情况
-* 权限控制
-* 参数校验
-
----
-
-# Principle 4：自动验证
-
-每次修改后必须执行：
-
-```bash
-lint
-
-unit test
-
-integration test
-
-build
-```
-
-全部成功才能继续。
-
----
-
-# Principle 5：禁止假成功
-
-以下情况视为失败：
-
-* 编译报错
-* 单元测试失败
-* 集成测试失败
-* 页面无法启动
-* API返回500
-* 覆盖率下降
-
-必须先修复。
-
----
-
-# 开发循环
-
-## Step 1 理解需求
-
-分析：
-
-```text
-目标是什么？
-
-输入是什么？
-
-输出是什么？
-
-验收标准是什么？
-
-风险是什么？
-```
+✓ 理解依赖关系
 
 输出：
 
-```markdown
-## Requirement Analysis
+- Goal
+- Scope
+- Risks
+- Files
+- Test Plan
 
-### User Story
+禁止：
 
-...
+直接写代码。
 
-### Acceptance Criteria
+============================================================
 
-- [ ]
-- [ ]
-```
+# Phase 2
 
----
+## ANALYZE
 
-## Step 2 拆解任务
+分析：
 
-生成：
+是否影响：
 
-```markdown
-## Task Breakdown
+API
 
-Task-1
+Database
 
-Task-2
+Cache
 
-Task-3
-```
+MQ
 
-要求：
+Authentication
 
-每个任务：
+Authorization
 
-```text
-30分钟以内完成
-```
+Configuration
 
----
+Frontend
 
-## Step 3 编写测试
+Backend
 
-优先生成：
+Shared Library
 
-```text
+输出：
+
+Impact Analysis
+
+============================================================
+
+# Phase 3
+
+## DESIGN
+
+设计：
+
+修改方案。
+
+包括：
+
+新增模块
+
+修改模块
+
+删除模块
+
+数据流
+
+接口变化
+
+风险点
+
+============================================================
+
+# Phase 4
+
+## TEST FIRST
+
+严格执行 TDD。
+
+首先：
+
+编写：
+
 Unit Test
-```
 
-其次：
-
-```text
 Integration Test
-```
 
-最后：
-
-```text
-E2E Test
-```
-
-例如：
-
-```java
-@Test
-void should_login_success()
-```
-
----
-
-## Step 4 运行测试
-
-执行：
-
-```bash
-npm test
-
-# 或
-
-pytest
-
-# 或
-
-mvn test
-```
-
-预期：
-
-```text
-FAIL
-```
-
-如果测试直接通过：
-
-说明测试无效。
-
-重新设计测试。
-
----
-
-## Step 5 最小实现
-
-目标：
-
-```text
-仅让当前测试通过
-```
-
-禁止：
-
-```text
-提前实现未来功能
-```
-
-遵守：
-
-```text
-YAGNI
-You Aren't Gonna Need It
-```
-
----
-
-## Step 6 再次测试
-
-执行：
-
-```bash
-test
-```
-
-预期：
-
-```text
-PASS
-```
-
-若失败：
-
-返回 Step 5。
-
----
-
-## Step 7 重构
-
-检查：
-
-### 重复代码
-
-```text
-DRY
-```
-
-### 命名
-
-```text
-清晰
-```
-
-### 架构
-
-```text
-符合分层
-```
-
-### 性能
-
-```text
-避免明显问题
-```
-
----
-
-## Step 8 全量验证
-
-执行：
-
-```bash
-lint
-
-unit test
-
-integration test
-
-build
-```
-
-全部通过：
-
-```text
-PASS
-```
-
-否则：
-
-返回修复。
-
----
-
-## Step 9 更新文档
-
-同步更新：
-
-```text
-README
-
-API文档
-
-CHANGELOG
-
-架构文档
-```
-
----
-
-## Step 10 Git提交
-
-提交格式：
-
-```bash
-git add .
-
-git commit -m "feat(auth): implement login service"
-```
-
-规范：
-
-```text
-feat
-fix
-refactor
-test
-docs
-chore
-```
-
----
-
-# 输出格式
-
-每轮循环输出：
-
-```markdown
-# Iteration N
-
-## Requirement
-
-...
-
-## Tests Added
-
-...
-
-## Implementation
-
-...
-
-## Verification
-
-PASS
-
-## Coverage
-
-85%
-
-## Commit
-
-feat(xxx): xxx
-```
-
----
-
-# 缺陷修复模式
-
-发现Bug：
-
-## 1 创建失败测试
-
-先复现问题。
-
-```text
-测试必须先失败
-```
-
----
-
-## 2 修复代码
-
-仅修复问题。
-
-禁止：
-
-```text
-顺手大改
-```
-
----
-
-## 3 回归测试
-
-执行：
-
-```bash
-全部测试
-```
-
-必须通过。
-
----
-
-# 重构模式
-
-允许：
-
-* 提升可读性
-* 提升复用性
-* 优化架构
-
-禁止：
-
-* 修改业务逻辑
-* 修改测试结果
-
-重构后：
-
-```bash
-全部测试通过
-```
-
----
-
-# Claude Code执行策略
-
-每轮循环必须自动执行：
-
-```text
-1 分析需求
-
-2 编写测试
-
-3 执行测试
-
-4 编写最小代码
-
-5 测试通过
-
-6 重构
-
-7 全量验证
-
-8 Git提交
-
-9 输出结果
-```
-
----
-
-# AI行为约束
+Playwright Test（如果涉及 UI）
 
 必须：
 
-✓ 优先测试
+先失败。
 
-✓ 小步提交
+没有 Fail：
 
-✓ 自动验证
+说明测试无效。
 
-✓ 输出风险
+重新编写。
 
-✓ 输出覆盖率
+============================================================
 
-✓ 输出变更说明
+# Phase 5
+
+## IMPLEMENT
+
+开始实现。
+
+原则：
+
+只实现：
+
+通过测试所需代码。
 
 禁止：
 
-✗ 跳过测试
+增加需求外功能。
 
-✗ 大规模重构
+遵循：
 
-✗ 删除已有测试
+SOLID
 
-✗ 修改无关代码
+DRY
 
-✗ 虚假完成
+KISS
 
----
+YAGNI
 
-# 完成定义（Definition of Done）
+============================================================
 
-以下全部满足才算完成：
+# Phase 6
 
-* [X] 功能实现
-* [X] 单元测试通过
-* [X] 集成测试通过
-* [X] 构建成功
-* [X] 覆盖率达标
-* [X] 文档更新
-* [X] Git提交
-* [X] 验收标准满足
+## VERIFY
+
+执行：
+
+Unit Test
+
+↓
+
+Integration Test
+
+↓
+
+Type Check
+
+↓
+
+Lint
+
+↓
+
+Build
+
+↓
+
+Playwright
+
+全部必须通过。
+
+============================================================
+
+# Unit Test
+
+检查：
+
+✓ 正常流程
+
+✓ 边界条件
+
+✓ 空值
+
+✓ Null
+
+✓ Exception
+
+✓ Error
+
+✓ Permission
+
+============================================================
+
+# Integration Test
+
+验证：
+
+API
+
+Database
+
+Redis
+
+MQ
+
+Repository
+
+Service
+
+Third-party API
+
+============================================================
+
+# Browser E2E
+
+如果：
+
+涉及：
+
+Web
+
+Admin
+
+Dashboard
+
+React
+
+Vue
+
+Angular
+
+Next
+
+Nuxt
+
+必须：
+
+使用：
+
+Playwright
+
+真实浏览器：
+
+Chromium
+
+============================================================
+
+Playwright 必须：
+
+启动项目
+
+等待 Ready
+
+打开页面
+
+检查：
+
+HTTP
+
+Console
+
+Network
+
+DOM
+
+============================================================
+
+执行真实用户流程：
+
+登录
+
+输入
+
+点击
+
+滚动
+
+分页
+
+新增
+
+编辑
+
+删除
+
+上传
+
+下载
+
+退出
+
+============================================================
+
+必须验证：
+
+页面正常
+
+元素存在
+
+Console 无 Error
+
+Network 无 Failed Request
+
+HTTP Status 正常
+
+数据正确
+
+Loading 消失
+
+Toast 正确
+
+Dialog 正确
+
+============================================================
+
+必须截图：
+
+首页
+
+主要页面
+
+成功页面
+
+异常页面
+
+============================================================
+
+任何失败：
+
+进入：
+
+FIX
+
+============================================================
+
+# Phase 7
+
+## FIX
+
+读取：
+
+错误日志
+
+Console
+
+Network
+
+StackTrace
+
+Test Result
+
+定位原因。
+
+修改代码。
+
+禁止：
+
+忽略错误。
+
+============================================================
+
+# Phase 8
+
+## REVERIFY
+
+重新执行：
+
+Unit Test
+
+↓
+
+Integration Test
+
+↓
+
+Playwright
+
+↓
+
+Build
+
+↓
+
+Lint
+
+↓
+
+Regression
+
+直到：
+
+全部 PASS。
+
+============================================================
+
+# Regression
+
+重新验证：
+
+所有已有功能。
+
+确保：
+
+没有新增 Bug。
+
+============================================================
+
+# Phase 9
+
+## REVIEW
+
+Review：
+
+代码风格
+
+命名
+
+复杂度
+
+重复代码
+
+异常处理
+
+日志
+
+安全
+
+性能
+
+============================================================
+
+Review Checklist：
+
+□ SOLID
+
+□ DRY
+
+□ KISS
+
+□ Error Handling
+
+□ Logging
+
+□ Security
+
+□ Performance
+
+□ Maintainability
+
+============================================================
+
+# Security Review
+
+检查：
+
+SQL Injection
+
+XSS
+
+CSRF
+
+权限
+
+Token
+
+Cookie
+
+Secret
+
+Sensitive Data
+
+============================================================
+
+# Performance Review
+
+检查：
+
+N+1
+
+重复请求
+
+重复渲染
+
+内存泄漏
+
+死循环
+
+慢 SQL
+
+大对象
+
+============================================================
+
+# Phase 10
+
+## COMMIT
+
+Commit 前：
+
+确认：
+
+Build PASS
+
+Lint PASS
+
+Type PASS
+
+Test PASS
+
+Playwright PASS
+
+Regression PASS
+
+============================================================
+
+Commit Message：
+
+必须：
+
+Conventional Commit
+
+例如：
+
+feat(user): add login page
+
+fix(api): fix token refresh
+
+refactor(auth): simplify middleware
+
+test(user): improve login coverage
+
+============================================================
+
+# Failure Loop
+
+任何失败：
+
+```
+Read Error
+      ↓
+Reason
+      ↓
+Fix
+      ↓
+Verify
+      ↓
+Still Fail？
+      ↓
+Yes────────────┐
+↑              │
+└──────────────┘
+```
+
+直到：
+
+PASS。
+
+============================================================
+
+# Browser Acceptance Standard
+
+最终验收：
+
+✓ 页面可访问
+
+✓ 页面无白屏
+
+✓ Console 无 Error
+
+✓ Network 全部成功
+
+✓ JS 无异常
+
+✓ 用户流程完成
+
+✓ 数据正确
+
+✓ 页面响应正常
+
+✓ 权限正常
+
+✓ 无新增 Bug
+
+============================================================
+
+# Completion Criteria
+
+任务只有在满足以下条件后才算完成：
+
+✓ Requirement 完成
+
+✓ Code 完成
+
+✓ Unit Test PASS
+
+✓ Integration PASS
+
+✓ Playwright PASS
+
+✓ Regression PASS
+
+✓ Build PASS
+
+✓ Lint PASS
+
+✓ Type Check PASS
+
+✓ Security Review PASS
+
+✓ Performance Review PASS
+
+✓ Commit Ready
 
 否则：
 
-```text
-任务未完成
-```
+任务未完成。
+
+============================================================
+
+# Claude Working Principle
+
+Claude 必须遵循：
+
+Think First
+
+↓
+
+Design
+
+↓
+
+Test First
+
+↓
+
+Implement
+
+↓
+
+Verify
+
+↓
+
+Fix
+
+↓
+
+Verify Again
+
+↓
+
+Review
+
+↓
+
+Deliver
+
+============================================================
+
+Never stop at:
+
+"代码已经完成。"
+
+Only stop at:
+
+"所有测试、浏览器验收、回归验证均已通过，可直接合并。"
+
+============================================================
