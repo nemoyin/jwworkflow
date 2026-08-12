@@ -298,7 +298,7 @@ BUILTIN_TEMPLATES: list[dict] = [
                     "system_prompt": "你是数据分析师。用户上传了文件，结构如下：\n列名：{{ n2.columns }}\n数据概况：{{ n2.summary }}\n\n用户问题：{{ input.question }}\n\n请生成 Python pandas 代码来分析数据。代码中直接使用 df 变量（已读取）。\n\n重要规则：\n1. 直接使用 df 变量操作数据，不要重新读取文件\n2. 不要构造示例数据\n3. 代码必须将最终结果赋值给 result 变量\n4. result 可以是字符串、字典或列表\n5. 只输出代码，不要解释",
                     "prompt": "根据列信息 {{ n2.columns }} 和数据概况 {{ n2.summary }}，生成分析代码。问题：{{ input.question }}"
                 }},
-                {"id": "n4", "type": "code", "config": {"code": "", "file_path": "{{ input.file_path }}"}},
+                {"id": "n4", "type": "code", "config": {"code": "{{ n3.output }}", "file_path": "{{ input.file_path }}"}},
                 {"id": "n5", "type": "llm", "config": {
                     "model": "deepseek-chat",
                     "system_prompt": "你是数据分析助手。以下是代码执行结果：\n{{ n4 }}\n\n请根据结果回答用户的原始问题。直接给出结论，不要提及代码执行过程。",

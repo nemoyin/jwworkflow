@@ -83,13 +83,20 @@ class CodeNodeExecutor(BaseNodeExecutor):
     """
 
     def execute(self, ctx: ExecutionContext, config: dict) -> dict:
-        # ---- Resolve file_path FIRST (before any code processing) ----
-        raw_fp = config.get("file_path", "")
-        if isinstance(raw_fp, str) and "{{" in raw_fp:
-            try:
-                raw_fp = ctx.resolve_variable(raw_fp)
-            except KeyError:
-                pass
+        # ---- Resolve template variables in config ----
+        # First resolve file_path and code from config, supporting {{ }} references
+        resolved_config = {}
+        for k, v in config.items():
+            if isinstance(v, str) and "{{" in v:
+                try:
+                    resolved_config[k] = ctx.resolve_variable(v)
+                except KeyError:
+                    resolved_config[k] = v
+            else:
+                resolved_config[k] = v
+
+        # ---- Resolve file_path ----
+        raw_fp = resolved_config.get("file_path", "")
         file_path = raw_fp
         if not file_path:
             for val in ctx.inputs.values():
@@ -102,7 +109,7 @@ class CodeNodeExecutor(BaseNodeExecutor):
                     break
 
         # ---- Get code ----
-        code = config.get("code", "")
+        code = resolved_config.get("code", "")
         # 如果 code 为空，尝试从上游 LLM 节点的输出获取
         if not code.strip():
             for nid in ["n3", "code_gen", "llm_code"]:
