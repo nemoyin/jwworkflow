@@ -70,6 +70,9 @@ class AgentNodeExecutor(BaseNodeExecutor):
 
     def execute(self, ctx: ExecutionContext, config: dict) -> dict:
         system_prompt = config.get("system_prompt", "You are a helpful assistant.")
+        # Resolve template variables in system_prompt (e.g. {{ input.scenario }})
+        if "{{" in system_prompt:
+            system_prompt = ctx.resolve_variable(system_prompt)
         tools_raw = config.get("tools", [])
         model = config.get("model")
         max_iterations = config.get("max_iterations", self.DEFAULT_MAX_ITERATIONS)
