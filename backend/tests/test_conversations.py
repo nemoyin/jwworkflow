@@ -162,6 +162,32 @@ class TestConversationsAPI:
         assert "output" in data
         assert data["duration_ms"] is not None
 
+    def test_send_message_content_is_clean_reply_text(self, headers, workflow_id):
+        """Assistant message content must be the readable reply text, not the
+        raw output dict repr (e.g. ``"{'reply': '你说了: 你好'}"``)."""
+        conv_resp = client.post(
+            "/api/conversations",
+            json={"workflow_id": workflow_id},
+            headers=headers,
+        )
+        conv_id = conv_resp.json()["id"]
+
+        resp = client.post(
+            f"/api/conversations/{conv_id}/messages",
+            json={"content": "你好"},
+            headers=headers,
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+
+        # content = 输出 dict 中提取出的可读文本，而非 dict 的 repr
+        assert data["message"]["content"] == "你说了: 你好"
+        assert not data["message"]["content"].startswith("{")
+
+        # 完整 output dict 仍保留在 metadata 与 response.output
+        assert data["message"]["metadata"]["output"] == {"reply": "你说了: 你好"}
+        assert data["output"] == {"reply": "你说了: 你好"}
+
     def test_message_history(self, headers, workflow_id):
         """Verify message history is recorded and retrievable."""
         conv_resp = client.post(

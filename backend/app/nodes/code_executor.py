@@ -17,6 +17,7 @@ import json as _json
 
 from app.nodes.base import BaseNodeExecutor
 from app.engine.context import ExecutionContext
+from app.utils.json_safe import make_json_safe
 
 # Modules that can be imported inside the sandbox
 _SAFE_MODULES = {
@@ -175,49 +176,6 @@ class CodeNodeExecutor(BaseNodeExecutor):
         return {"output": result}
 
 
-def _make_json_safe(obj):
-    """Recursively convert objects to JSON-safe types.
-
-    Handles: pd.Timestamp, pd.NaT, datetime, date, numpy scalars,
-    and nested dicts/lists containing them.
-    """
-    import datetime as _dt
-
-    # pandas Timestamp → ISO string
-    if hasattr(_pd, "NaT") and obj is _pd.NaT:
-        return None
-    if hasattr(_pd, "Timestamp") and isinstance(obj, _pd.Timestamp):
-        return obj.isoformat()
-
-    # Standard Python datetime / date → ISO string
-    if isinstance(obj, (_dt.datetime, _dt.date)):
-        return obj.isoformat()
-
-    # numpy scalar types → native Python types
-    try:
-        import numpy as _np
-        if isinstance(obj, _np.integer):
-            return int(obj)
-        if isinstance(obj, _np.floating):
-            return float(obj)
-        if isinstance(obj, _np.bool_):
-            return bool(obj)
-        if isinstance(obj, _np.ndarray):
-            return _make_json_safe(obj.tolist())
-    except ImportError:
-        pass
-
-    # dict / list / tuple → recurse
-    if isinstance(obj, dict):
-        return {_make_json_safe(k): _make_json_safe(v) for k, v in obj.items()}
-    if isinstance(obj, (list, tuple)):
-        return [_make_json_safe(v) for v in obj]
-
-    # Python float NaN / Infinity → None (json.dumps outputs NaN which is invalid JSON)
-    if isinstance(obj, float):
-        import math as _math
-        if _math.isnan(obj) or _math.isinf(obj):
-            return None
-
-    # Everything else (int, float, str, bool, None) is already JSON-safe
-    return obj
+# Alias for backwards compatibility: query_executor.py imports this name.
+# The implementation now lives in app.utils.json_safe.make_json_safe.
+_make_json_safe = make_json_safe

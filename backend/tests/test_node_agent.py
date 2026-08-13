@@ -513,3 +513,93 @@ class TestAgentNode:
         result = executor.execute(ctx, config)
         assert result["iterations"] == 1
         assert result["tool_calls"] == []
+
+
+class TestAgentNodeChatMode:
+    """Agent 节点 chat 模式：携带历史与当前消息做交互式对话"""
+
+    def _real_llm_ctx(self, executor, history, inputs):
+        """构造走真实 LLM 路径（mock _call_llm_real）的上下文与捕获器"""
+        captured = {}
+
+        def fake_call(conversation, model, tools, temperature):
+            captured["conversation"] = conversation
+            captured["model"] = model
+            captured["tools"] = tools
+            return {"type": "final_answer", "content": "请如实回答下列问题。"}
+
+        executor._call_llm_real = fake_call  # 实例属性遮蔽 staticmethod
+        from app.engine.chat_context import ChatExecutionContext
+        return ChatExecutionContext(inputs=inputs, history=history), captured
+
+    def test_chat_mode_passes_history_and_current_message(self, monkeypatch):
+        """会话 = system(已渲染 {{ input.* }}) + 历史(含当前用户消息)"""
+        from app.config import settings
+        monkeypatch.setattr(settings, "LLM_API_KEY", "sk-test-for-chat")
+        executor = AgentNodeExecutor()
+        history = [
+            {"role": "user", "content": "我是张某某。"},
+            {"role": "assistant", "content": "请说明你与该项目的关系。"},
+        ]
+        ctx, captured = self._real_llm_ctx(
+            executor, history,
+            {"message": "我与该项目没有直接关系。", "scenario": "涉嫌违规审批项目"},
+        )
+        config = {
+            "system_prompt": "你是纪委谈话人。谈话场景：{{ input.scenario }}",
+            "model": "deepseek-chat",
+            "mode": "chat",
+        }
+        result = executor.execute(ctx, config)
+
+        # 1. system prompt 模板已渲染
+        assert captured["conversation"][0]["role"] == "system"
+        assert "涉嫌违规审批项目" in captured["conversation"][0]["content"]
+        # 2. 历史（含当前用户消息）完整传入
+        assert captured["conversation"][1:] == history
+        # 3. 返回结构：output 与 final_answer 一致
+        assert result["output"] == "请如实回答下列问题。"
+        assert result["final_answer"] == result["output"]
+
+    def test_chat_mode_output_resolves_as_n2_dot_output(self, monkeypatch):
+        """模板 `source: n2.output` 能解析到回复（此前为缺失键返回空串）"""
+        from app.config import settings
+        monkeypatch.setattr(settings, "LLM_API_KEY", "sk-test-for-chat")
+        executor = AgentNodeExecutor()
+        ctx, _ = self._real_llm_ctx(
+            executor,
+            [{"role": "user", "content": "开始"}],
+            {"message": "开始", "scenario": "S"},
+        )
+        config = {"mode": "chat", "system_prompt": "你是谈话人", "model": "m"}
+        result = executor.execute(ctx, config)
+        ctx.set("n2", result)
+        assert ctx.resolve_variable("{{ n2.output }}") == "请如实回答下列问题。"
+
+    def test_chat_mode_falls_back_to_current_input_message(self, monkeypatch):
+        """无 history（非 ChatExecutionContext）时用当前输入消息兜底"""
+        from app.config import settings
+        monkeypatch.setattr(settings, "LLM_API_KEY", "sk-test-for-chat")
+        executor = AgentNodeExecutor()
+        captured = {}
+
+        def fake_call(conversation, model, tools, temperature):
+            captured["conversation"] = conversation
+            return {"type": "final_answer", "content": "回答"}
+
+        executor._call_llm_real = fake_call
+        ctx = ExecutionContext({"message": "直接提问"})
+        config = {"mode": "chat", "system_prompt": "你是助手", "model": "m"}
+        result = executor.execute(ctx, config)
+        assert captured["conversation"][-1] == {"role": "user", "content": "直接提问"}
+        assert result["output"] == "回答"
+
+    def test_chat_mode_stub_returns_output(self):
+        """stub（无 API key）路径同样返回 output"""
+        executor = AgentNodeExecutor()
+        ctx = ExecutionContext({"message": "hi"})
+        config = {"mode": "chat", "system_prompt": "你是助手", "model": "gpt-4", "stub_mode": True}
+        result = executor.execute(ctx, config)
+        assert "output" in result
+        assert result["output"] == result["final_answer"]
+        assert result["output"]

@@ -15,6 +15,7 @@ from app.schemas.workflow import WorkflowCreate, WorkflowUpdate, WorkflowRespons
 from app.engine.dag import WorkflowDag
 from app.engine.executor import WorkflowExecutor
 from app.nodes import NODE_REGISTRY
+from app.utils.json_safe import make_json_safe
 
 router = APIRouter(prefix="/api/workflows", tags=["workflows"])
 
@@ -80,12 +81,14 @@ async def preview_workflow(
     if not wf:
         raise HTTPException(status_code=404, detail="工作流不存在")
 
-    # 提取输入节点字段
+    # 提取输入节点字段 + 检测访谈模式
     input_fields = []
+    interview_mode = False
     for node in wf.dag_definition.get("nodes", []):
         if node["type"] == "input":
             input_fields = node["config"].get("fields", [])
-            break
+        if node["type"] == "agent" and node.get("config", {}).get("mode") == "chat":
+            interview_mode = True
 
     return {
         "id": str(wf.id),
@@ -93,6 +96,7 @@ async def preview_workflow(
         "description": wf.description,
         "type": wf.type,
         "input_fields": input_fields,
+        "interview_mode": interview_mode,
         "endpoint": f"/api/workflows/{wf.id}/run",
         "method": "POST",
     }
@@ -310,12 +314,14 @@ async def run_workflow(
     if status_val == "failed":
         raise HTTPException(status_code=500, detail=error_text)
 
+    # 节点输出可能包含 numpy/pandas 类型，直接返回会让 FastAPI 序列化失败，
+    # 这里统一转为 JSON 安全结构。
     return RunResponse(
         id=str(run.id),
         workflow_id=str(run.workflow_id),
         status=run.status,
-        result=run.output,
+        result=make_json_safe(run.output),
         duration_ms=run.duration_ms,
         created_at=run.created_at.isoformat(),
-        steps=step_events,
+        steps=make_json_safe(step_events),
     )

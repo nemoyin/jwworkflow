@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { Input, Button, Typography, Tag, Space, message, Modal, Upload, Spin } from 'antd';
+import { Input, Select, Button, Typography, Tag, Space, message, Modal, Upload, Spin } from 'antd';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { SendOutlined, RobotOutlined, UserOutlined, CodeOutlined, ShareAltOutlined, ClearOutlined, UploadOutlined, FileExcelOutlined, DownOutlined, RightOutlined, BugOutlined } from '@ant-design/icons';
+import { SendOutlined, RobotOutlined, UserOutlined, CodeOutlined, ShareAltOutlined, ClearOutlined, UploadOutlined, FileExcelOutlined, DownOutlined, RightOutlined, BugOutlined, CustomerServiceOutlined } from '@ant-design/icons';
 import { api } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
+import { DigitalHumanInterview } from '../components/digital-human';
 
 const { Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -48,8 +49,11 @@ const WorkflowPreviewPage: React.FC = () => {
   const [embedModal, setEmbedModal] = useState(false);
   const [apiModal, setApiModal] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<{ name: string; path: string } | null>(null);
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [errorDetail, setErrorDetail] = useState<{ message: string; requestId?: string; body?: any } | null>(null);
   const [errorExpanded, setErrorExpanded] = useState(false);
+  const [interviewMode, setInterviewMode] = useState(false);
+  const [showDigitalHuman, setShowDigitalHuman] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // 流式聚合消息状态
@@ -61,6 +65,20 @@ const WorkflowPreviewPage: React.FC = () => {
 
   const needsFileUpload = wf?.input_fields?.some((f: any) => f.name === 'file_path') || false;
 
+  /** 从输入节点字段的 default 值生成初始字段值 */
+  const computeFieldDefaults = (fields: any[]): Record<string, string> => {
+    const defaults: Record<string, string> = {};
+    for (const f of fields) {
+      if (f.default !== undefined && f.default !== null) defaults[f.name] = String(f.default);
+    }
+    return defaults;
+  };
+
+  // chatflow 场景参数：input 节点中需表单填写的字段（文件走上传、question/input 走消息框）
+  const formFields = wf?.type === 'chatflow'
+    ? (wf?.input_fields || []).filter((f: any) => f.name !== 'file_path' && f.name !== 'question' && f.name !== 'input')
+    : [];
+
   // 自动滚动
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, streamContent]);
 
@@ -71,6 +89,8 @@ const WorkflowPreviewPage: React.FC = () => {
     api.get<any>(`/workflows/${id}/preview`)
       .then((data) => {
         setWf(data);
+        setInterviewMode(data.interview_mode || false);
+        setFieldValues(computeFieldDefaults(data.input_fields || []));
         setMessages([{
           role: 'assistant',
           content: data.type === 'chatflow'
@@ -259,8 +279,21 @@ const WorkflowPreviewPage: React.FC = () => {
           convId = conv.id || '';
           sessionStorage.setItem(`conv_${id}`, convId);
         }
-        const resp = await api.post<any>(`/conversations/${convId}/messages`, { content: userMsg });
-        const result = resp.response || resp.content || JSON.stringify(resp);
+        // 后端不持久化原始输入，每次消息都要带上字段值，供 {{ input.xxx }} 渲染
+        const inputs: Record<string, any> = {};
+        for (const f of wf?.input_fields || []) {
+          if (f.name === 'file_path') {
+            if (uploadedFile) inputs[f.name] = uploadedFile.path;
+          } else if (f.name === 'question' || f.name === 'input') {
+            if (userMsg) inputs[f.name] = userMsg;
+          } else {
+            const v = fieldValues[f.name];
+            if (v !== undefined && v !== '') inputs[f.name] = v;
+          }
+        }
+        const resp = await api.post<any>(`/conversations/${convId}/messages`, { content: userMsg, inputs });
+        // 后端已把可读回复写入 message.content；取它，而不是把整个响应 JSON 直接展示
+        const result = resp.message?.content || resp.response || resp.content || JSON.stringify(resp);
         setMessages((prev) => [...prev, { role: 'assistant', content: typeof result === 'string' ? result : JSON.stringify(result, null, 2), timestamp: Date.now() }]);
       } else {
         const finalText = await runWithSSE(body);
@@ -281,6 +314,7 @@ const WorkflowPreviewPage: React.FC = () => {
   const handleClear = () => {
     setMessages([]);
     setUploadedFile(null);
+    setFieldValues(computeFieldDefaults(wf?.input_fields || []));
     setStreamVisible(false);
     stopThinkingTimer();
     sessionStorage.removeItem(`conv_${id}`);
@@ -305,6 +339,10 @@ const WorkflowPreviewPage: React.FC = () => {
           </div>
         </Space>
         <Space>
+          {interviewMode && (
+            <Button size="small" type="primary" icon={<CustomerServiceOutlined />}
+              onClick={() => setShowDigitalHuman(true)}>数字人访谈</Button>
+          )}
           <Button size="small" icon={<ClearOutlined />} onClick={handleClear}>清空</Button>
           <Button size="small" icon={<CodeOutlined />} onClick={() => setApiModal(true)}>API</Button>
           <Button size="small" icon={<ShareAltOutlined />} onClick={() => setEmbedModal(true)}>嵌入</Button>
@@ -372,8 +410,40 @@ const WorkflowPreviewPage: React.FC = () => {
         </div>
       )}
 
-      {/* File Upload + Input */}
+      {/* 场景参数（chatflow 的 input 节点字段） + File Upload + Input */}
       <div style={{ borderTop: '1px solid #f0f0f0', background: '#fff' }}>
+        {formFields.length > 0 && (
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', background: '#fafafa' }}>
+            <Text strong style={{ fontSize: 13 }}>场景参数</Text>
+            {formFields.map((f: any) => (
+              <div key={f.name} style={{ marginTop: 8 }}>
+                <Text style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>{f.label || f.name}</Text>
+                {f.type === 'select' ? (
+                  <Select
+                    data-testid={`chatflow-field-${f.name}`}
+                    value={fieldValues[f.name] || undefined}
+                    onChange={(v) => setFieldValues((prev) => ({ ...prev, [f.name]: v }))}
+                    placeholder={`请选择${f.label || f.name}（留空自动）`}
+                    allowClear
+                    style={{ width: '100%', fontSize: 13 }}
+                    options={(f.options || []).map((opt: any) =>
+                      typeof opt === 'string' ? { label: opt, value: opt } : opt,
+                    )}
+                  />
+                ) : (
+                  <TextArea
+                    data-testid={`chatflow-field-${f.name}`}
+                    value={fieldValues[f.name] || ''}
+                    onChange={(e) => setFieldValues((prev) => ({ ...prev, [f.name]: e.target.value }))}
+                    placeholder={`请输入${f.label || f.name}`}
+                    rows={2}
+                    style={{ fontSize: 13 }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
         {needsFileUpload && (
           <div style={{ padding: '8px 16px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', gap: 8, background: '#fafafa' }}>
             {uploadedFile ? (
@@ -401,6 +471,17 @@ const WorkflowPreviewPage: React.FC = () => {
         <Text strong>接口：</Text>
         <Paragraph copyable style={{ fontFamily: 'monospace', fontSize: 12 }}>{`POST ${window.location.origin}/api/workflows/${id}/execute`}</Paragraph>
       </Modal>
+
+      {/* 数字人访谈 Portal */}
+      {showDigitalHuman && (
+        <DigitalHumanInterview
+          workflowId={id!}
+          scenario={fieldValues.scenario || wf?.input_fields?.find((f: any) => f.name === 'scenario')?.default || ''}
+          subjectInfo={fieldValues.subject_info || wf?.input_fields?.find((f: any) => f.name === 'subject_info')?.default || ''}
+          behaviorMode={fieldValues.behavior_mode || wf?.input_fields?.find((f: any) => f.name === 'behavior_mode')?.default || ''}
+          onClose={() => setShowDigitalHuman(false)}
+        />
+      )}
     </div>
   );
 };

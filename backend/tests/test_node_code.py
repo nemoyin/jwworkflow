@@ -1,5 +1,8 @@
 """Tests for CodeNodeExecutor — sandboxed Python code execution."""
 
+import json
+
+import numpy as np
 import pytest
 from app.engine.context import ExecutionContext
 from app.nodes.code_executor import CodeNodeExecutor
@@ -104,3 +107,33 @@ class TestCodeNode:
         }
         result = executor.execute(ctx, config)
         assert result == {"output": "Result: 42"}
+
+    def test_numpy_result_is_json_serializable(self):
+        """验证 numpy 类型的 result 会被转换为 JSON 安全类型（int64/float64）"""
+        executor = CodeNodeExecutor()
+        ctx = ExecutionContext({})
+        config = {
+            "code": (
+                "import numpy as np\n"
+                "result = {'total': np.int64(42), 'avg': np.float64(1.5)}"
+            )
+        }
+        result = executor.execute(ctx, config)
+        assert result == {"total": 42, "avg": 1.5}
+        json.dumps(result)  # 必须可被 json 序列化，不抛异常
+
+    def test_exotic_numpy_types_are_json_serializable(self):
+        """验证 np.datetime64 / pd.NA 等类型也被转换，不再漏网"""
+        executor = CodeNodeExecutor()
+        ctx = ExecutionContext({})
+        config = {
+            "code": (
+                "import numpy as np\n"
+                "result = {'date': np.datetime64('2025-01-01'), "
+                "'sum': np.int64(245500)}"
+            )
+        }
+        result = executor.execute(ctx, config)
+        json.dumps(result)  # 必须可被 json 序列化，不抛异常
+        assert result["date"] == "2025-01-01"
+        assert result["sum"] == 245500

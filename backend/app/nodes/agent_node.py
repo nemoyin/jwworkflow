@@ -1,6 +1,6 @@
-"""Agent Node — ReAct / Function Calling dual-mode agent.
+"""Agent Node — ReAct / Function Calling / Chat multi-mode agent.
 
-Supports two reasoning modes:
+Supports three reasoning modes:
 
 - **function_calling** (default): Uses OpenAI-compatible tool definitions.
   The LLM selects tools via ``tool_calls`` and returns results.
@@ -8,10 +8,18 @@ Supports two reasoning modes:
 - **react**: Uses a structured ReAct prompt (Thought/Action/Action Input/
   Observation). Responses are parsed from the LLM's text output.
 
+- **chat**: Interactive multi-turn dialogue. The conversation is built from
+  the system prompt plus the conversation history (from
+  ``ChatExecutionContext.history``, whose last entry is the current user
+  message) and returns one assistant reply. Used by chatflows such as
+  纪检模拟谈话.
+
 Returns
 -------
 {"final_answer": "...", "tool_calls": [...], "iterations": N,
  "trace": [...]}   (trace only present in react mode)
+For chat mode: {"output": "...", "final_answer": "...", "tool_calls": [],
+ "iterations": 1}   (``output`` lets templates reference ``{{ n2.output }}``)
 """
 
 import json
@@ -86,6 +94,9 @@ class AgentNodeExecutor(BaseNodeExecutor):
 
         if mode == "react":
             return self._execute_react(system_prompt, tool_defs, model, max_iterations, temperature, ctx, use_stub, config)
+
+        if mode == "chat":
+            return self._execute_chat(ctx, system_prompt, model, temperature, use_stub, config)
 
         # --- function_calling mode (original) ---
         full_prompt = self._build_prompt(system_prompt, tool_defs)
@@ -179,6 +190,35 @@ class AgentNodeExecutor(BaseNodeExecutor):
                 return {"final_answer": answer, "tool_calls": tool_calls, "iterations": iterations + 1, "trace": trace}
 
         return {"final_answer": "Max iterations reached.", "tool_calls": tool_calls, "iterations": max_iterations, "trace": trace}
+
+    def _execute_chat(self, ctx, system_prompt, model, temperature, use_stub, config):
+        """chat 模式：交互式对话，返回一轮助手回复。
+
+        conversation 由 system prompt + 会话历史构成；历史来自
+        ``ChatExecutionContext.history``（最后一条即当前用户消息），
+        使 AI 能看到被谈话人的上一轮回答后追问。
+        """
+        history = []
+        if hasattr(ctx, "history"):
+            history = ctx.history
+        # 兜底：非 ChatExecutionContext 时用当前输入消息作为用户消息
+        if not history and ctx.inputs.get("message"):
+            history = [{"role": "user", "content": str(ctx.inputs["message"])}]
+
+        conversation = [{"role": "system", "content": system_prompt}] + list(history)
+
+        if use_stub:
+            resp = self._call_llm_stub(conversation, model or "default", config.get("_stub_tool_calls"), 0, [])
+        else:
+            resp = self._call_llm_real(conversation, model, None, temperature)
+
+        content = resp.get("content", "") if isinstance(resp, dict) else str(resp)
+        return {
+            "output": content,
+            "final_answer": content,
+            "tool_calls": [],
+            "iterations": 1,
+        }
 
     # ------------------------------------------------------------------
     # Real LLM call

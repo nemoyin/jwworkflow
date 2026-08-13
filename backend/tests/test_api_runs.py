@@ -41,6 +41,50 @@ class TestRunsAPI:
         }, headers=headers)
         return resp.json()["id"]
 
+    @pytest.fixture
+    def code_workflow_id(self, headers):
+        """一个输出 numpy/pandas 类型的代码节点工作流（复现 服务端异常）"""
+        resp = client.post("/api/workflows", json={
+            "name": "Numpy代码工作流",
+            "description": "代码节点输出 numpy 类型，验证持久化与响应不崩溃",
+            "type": "workflow",
+            "dag_definition": {
+                "nodes": [
+                    {"id": "n1", "type": "input", "config": {"fields": [{"name": "query", "type": "text"}]}},
+                    {
+                        "id": "n2", "type": "code", "config": {
+                            "code": (
+                                "import numpy as np\n"
+                                "result = {'total': np.int64(42), "
+                                "'avg': np.float64(1.5), "
+                                "'date': np.datetime64('2025-01-01')}"
+                            )
+                        }
+                    },
+                    {"id": "n3", "type": "output", "config": {"variables": [{"name": "analysis", "source": "n2"}]}},
+                ],
+                "edges": [
+                    {"id": "e1", "source": "n1", "target": "n2"},
+                    {"id": "e2", "source": "n2", "target": "n3"},
+                ]
+            }
+        }, headers=headers)
+        assert resp.status_code in (200, 201), resp.text
+        return resp.json()["id"]
+
+    def test_run_code_node_with_numpy_output(self, headers, code_workflow_id):
+        """代码节点输出 numpy 类型时，运行接口必须正常返回（不报 500/服务端异常）"""
+        resp = client.post(
+            f"/api/workflows/{code_workflow_id}/run",
+            json={"query": "多维度分析销售数据"},
+            headers=headers,
+        )
+        assert resp.status_code == 200, resp.text[:500]
+        result = resp.json()["result"]
+        assert result["analysis"]["total"] == 42
+        assert result["analysis"]["avg"] == 1.5
+        assert result["analysis"]["date"] == "2025-01-01"
+
     def test_list_runs_empty(self, headers):
         """验证运行历史为空时返回空列表"""
         resp = client.get("/api/runs", headers=headers)

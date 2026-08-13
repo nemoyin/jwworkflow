@@ -23,6 +23,24 @@ from app.nodes import NODE_REGISTRY
 router = APIRouter(prefix="/api/conversations", tags=["conversations"])
 
 
+def _extract_reply(output) -> str:
+    """从工作流输出中提取面向用户的可读回复文本。
+
+    chatflow 的输出通常是 ``{output_var: "回复文本"}``（如纪检模拟谈话的
+    ``{"conversation_log": "..."}``），前端直接展示这条文本。取首个非空字符串值；
+    无法提取时回退到 ``str(output)``，保证消息内容不丢失信息。
+    """
+    if not output:
+        return ""
+    if isinstance(output, str):
+        return output
+    if isinstance(output, dict):
+        for value in output.values():
+            if isinstance(value, str) and value.strip():
+                return value
+    return str(output)
+
+
 # ---------------------------------------------------------------------------
 # Conversation CRUD
 # ---------------------------------------------------------------------------
@@ -204,9 +222,8 @@ async def send_message(
     # ------------------------------------------------------------------
     # 7. Record the assistant message
     # ------------------------------------------------------------------
-    assistant_content = (
-        str(output) if output else (error_text or "处理完成")
-    )
+    # 存储可读回复文本（从输出 dict 提取首个字符串值），完整 output 保留在 metadata
+    assistant_content = _extract_reply(output) or (error_text or "处理完成")
     assistant_msg = Message(
         conversation_id=conv.id,
         role="assistant",
