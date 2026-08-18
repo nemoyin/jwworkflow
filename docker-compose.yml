@@ -1,58 +1,37 @@
-
+# jwworkflow 前后端双镜像编排
+# 数据策略：模板、实例化工作流、对话记录等持久化数据以 SQLite 快照固化在后端镜像内（/app/jwworkflow.db）
+# 使用 docker compose build && docker compose up -d 启动，docker compose save 导出镜像
 services:
-  postgres:
-    image: pgvector/pgvector:pg16
-    environment:
-      POSTGRES_DB: jwworkflow
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   backend:
+    image: jwworkflow-backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "18000:8000"
     environment:
-      DATABASE_URL: postgresql+psycopg2://postgres:postgres@postgres:5432/jwworkflow
-      JWT_SECRET: dev-secret-do-not-use-in-production
-      DEBUG: "true"
+      DATABASE_URL: sqlite+aiosqlite:////app/jwworkflow.db
+      JWT_SECRET: test-secret-for-development
       LLM_API_KEY: sk-dc42126e667a4e899fa68fc3f70b00b7
       LLM_BASE_URL: https://api.deepseek.com
       LLM_DEFAULT_MODEL: deepseek-v4-pro
-    volumes:
-      - data:/app/data
-    depends_on:
-      postgres:
-        condition: service_healthy
+      UPLOAD_DIR: ./data/uploads
+      KNOWLEDGE_DIR: ./data/knowledge
+    # 不挂载 volume：SQLite 数据已固化进镜像，容器内为只读快照，重启不丢失
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   frontend:
+    image: jwworkflow-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5173:5173"
-    environment:
-      VITE_API_PROXY: http://backend:8000
-    volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
-      - ./frontend/index.html:/app/index.html
-      - ./frontend/vite.config.ts:/app/vite.config.ts
-      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - "8088:80"
     depends_on:
-      - backend
-    command: npm run dev -- --host 0.0.0.0
-
-volumes:
-  pgdata:
-  data:
+      backend:
+        condition: service_healthy

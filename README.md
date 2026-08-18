@@ -39,6 +39,7 @@ jwworkflow 是一个**面向业务专家（非技术用户）的通用 LLM Agent
 | ⚖️ 定性量纪辅助 | 基于规则+案例的纪律处分建议 |
 | 📑 三书比对 | 多版本文书自动比对差异 |
 | 🛒 国企招采比价 | 采购价格智能比对分析 |
+| 🎓 小升初择优面试 | 小升初面试择优选拔演练（AI 面试老师按模式提问，支持数字人访谈） |
 
 ---
 
@@ -81,6 +82,12 @@ jwworkflow 是一个**面向业务专家（非技术用户）的通用 LLM Agent
 - 自动解析→分块→Embedding→pgvector 存储
 - 混合检索（向量相似度 + 全文搜索）
 
+### AI 数字人访谈
+
+- 全屏沉浸式数字人访谈门户（STT → LLM → TTS 实时语音循环）
+- 与 Chatflow 对话流深度结合：`system_prompt` 内以 `{{ input.xxx }}` 渲染场景、对象、模式等上下文
+- 多轮口语交互，适用于小升初面试、模拟谈话、产品讲解等演练场景
+
 ---
 
 ## 🏗 架构总览
@@ -94,18 +101,20 @@ Backend (FastAPI + SQLAlchemy)
     ├─ agents/       场景智能体框架 (合规/围串标/谈话)
     ├─ services/     RAG 管道 | LLM 调用 | Embedding
     └─ api/          Workflow CRUD | Auth | Knowledge | Chat | Templates
-DB (PostgreSQL + pgvector 扩展)
+DB (SQLite 内置 / PostgreSQL + pgvector 可选)
 ```
 
-### 简化数据层（MVP 单机可启动）
+### 数据层
 
 ```
-PostgreSQL (唯一重型依赖)
-  └─ pgvector 扩展 = 内置向量库（无需额外部署 Milvus）
+Docker 打包形态（默认，无外部依赖）
+  └─ SQLite（sqlite+aiosqlite，jwworkflow.db）——模板/工作流/对话记录全部固化在后端镜像内
+  └─ 本地文件系统（替代 MinIO/S3）
+      └─ /data/uploads/   上传文档
+      └─ /data/knowledge/ 知识库文件
 
-本地文件系统（替代 MinIO/S3）
-  └─ /data/uploads/   上传文档
-  └─ /data/knowledge/ 知识库文件
+可选形态（通过 DATABASE_URL 切换）
+  └─ PostgreSQL 16 + pgvector 扩展 = 内置向量库（无需额外部署 Milvus）
 
 ❌ 去除：Celery / RabbitMQ / Redis / MinIO / Milvus
    └─ 工作流改为同步执行（长任务用 SSE 推送进度）
@@ -117,18 +126,32 @@ PostgreSQL (唯一重型依赖)
 
 ### 方式一：Docker Compose（推荐）
 
+后端与前端各为独立镜像（`jwworkflow-backend` / `jwworkflow-frontend`），由 `docker-compose.yml` 编排。**模板、实例化工作流、对话记录等持久化数据以 SQLite 快照固化在后端镜像内**（`/app/jwworkflow.db`），开箱即用、无需外部数据库。
+
 ```bash
 git clone <your-repo-url>
 cd jwworkflow
 
-# 配置环境变量
-cp backend/.env.example backend/.env
-# 编辑 .env 填入 LLM API Key
-
-# 一键启动
+# 一键构建并启动
+docker compose build
 docker compose up -d
 
-# 访问 http://localhost:5173
+# 访问前端 http://localhost:8088 （后端 API 端口 18000，健康检查 /health）
+```
+
+> **国内网络构建注意**：backend 构建使用阿里云 PyPI 镜像（`mirrors.aliyun.com`），frontend 使用 npmmirror registry，避免官方源超时/SSL 阻断。
+
+#### 镜像打包与离线分发
+
+数据已固化在镜像内，可用 `docker save` 导出为单个 tar 包，离线环境 `docker load` 后直接运行：
+
+```bash
+# 本机导出（含前后端两个镜像）
+docker save -o jwworkflow.tar jwworkflow-backend:latest jwworkflow-frontend:latest
+
+# 目标机加载并启动
+docker load -i jwworkflow.tar
+docker compose up -d     # 访问 http://<host>:8088
 ```
 
 ### 方式二：本地开发
@@ -159,7 +182,7 @@ npm run dev -- --port 5173
 
 ## 🧪 测试
 
-### 后端测试（229 个）
+### 后端测试（275 个）
 
 ```bash
 cd backend
@@ -247,6 +270,7 @@ npx playwright test --reporter=list
 | **围串标分析** | `input → code → llm → output` | 投标文件围标串标风险分析 |
 | **纪检模拟谈话** | `input → agent → output` | 纪检监察谈话模拟演练 |
 | **AI 问数** | `input → llm → output` | 自然语言数据查询与分析 |
+| **小升初择优面试** | `input → agent(chat) → output` | 小升初面试择优演练；输入学校/学生信息与面试模式（自适应/压力/学术/表达等 8 种），AI 面试老师多轮提问，支持数字人访谈 |
 
 ---
 
@@ -260,10 +284,10 @@ npx playwright test --reporter=list
 | **状态管理** | Zustand |
 | **后端** | Python 3.11+ / FastAPI |
 | **ORM** | SQLAlchemy 2.0 + Alembic |
-| **数据库** | PostgreSQL 16 + pgvector |
+| **数据库** | SQLite（Docker 打包内置）/ PostgreSQL 16 + pgvector（可选） |
 | **LLM 集成** | OpenAI 兼容 SDK（支持 DeepSeek / OpenAI / Ollama 等） |
 | **测试** | pytest (后端) / Playwright (前端 E2E) |
-| **容器化** | Docker Compose |
+| **容器化** | Docker Compose 双镜像编排 + docker save 离线分发 |
 
 ---
 
@@ -282,7 +306,7 @@ jwworkflow/
 │   │  ├ services/       # 业务逻辑（LLM/RAG）
 │   │  └ middleware/     # JWT 认证 / 多租户 / RBAC
 │   ├ alembic/           # 数据库迁移
-│   ├ tests/             # 229 个测试
+│   ├ tests/             # 275 个测试
 │   └ requirements.txt
 ├── frontend/
 │   ├ src/
@@ -293,7 +317,7 @@ jwworkflow/
 │   │  └ services/       # API 客户端
 │   ├ e2e/               # Playwright E2E 测试
 │   └ package.json
-├── docker-compose.yml   # 一键部署
+├── docker-compose.yml   # 前后端双镜像编排（后端内置 SQLite 数据快照）
 └── docs/                # 设计文档与计划
 ```
 
@@ -316,4 +340,6 @@ MIT
 | **Phase 5** | 知识库 + RAG（文档管理/向量检索） | ✅ 完成 |
 | **Phase 6** | Agent + Chatflow + 场景模板 | ✅ 完成 |
 | **Phase 7** | 多模型管理 + RBAC + 租户管理 | ✅ 完成 |
+| **Phase 8** | 小升初择优面试模板 + 数字人访谈 | ✅ 完成 |
+| **Phase 9** | Docker 双镜像打包（SQLite 数据固化 + docker save 分发）、登录态持久化 | ✅ 完成 |
 | **后续** | 真实 LLM 接入、性能优化、更多场景智能体 | 📋 规划中 |

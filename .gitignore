@@ -10,6 +10,9 @@ build/
 data/
 .superpowers/
 *.db
+*.db.bak
 *.log
 backend2.log
 test-results/
+# docker save 导出包（镜像分发用，不入库）
+jwworkflow.tar

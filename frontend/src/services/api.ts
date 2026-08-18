@@ -1,5 +1,9 @@
 const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
+/** 持久化 token 的 localStorage 键（刷新/重启后恢复登录态） */
+export const TOKEN_KEY = 'jwworkflow_auth_token';
+export const TOKEN_EMAIL_KEY = `${TOKEN_KEY}_email`;
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -13,10 +17,11 @@ export class ApiError extends Error {
 }
 
 class ApiClient {
-  private token: string | null = null;
+  // 从 localStorage 恢复，刷新/重启浏览器后仍保持登录态
+  private token: string | null = localStorage.getItem(TOKEN_KEY);
 
-  setToken(token: string) { this.token = token; }
-  clearToken() { this.token = null; }
+  setToken(token: string) { this.token = token; localStorage.setItem(TOKEN_KEY, token); }
+  clearToken() { this.token = null; localStorage.removeItem(TOKEN_KEY); }
 
   private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -40,6 +45,14 @@ class ApiClient {
     }
 
     if (!res.ok) {
+      // token 过期/无效：清掉本地 token 并整页回登录页（token 已清，刷新后 store 恢复为未登录）
+      if (res.status === 401) {
+        this.clearToken();
+        localStorage.removeItem(TOKEN_EMAIL_KEY);
+        if (!location.pathname.startsWith('/login')) {
+          location.href = '/login';
+        }
+      }
       const detail = responseBody?.message || responseBody?.detail || responseBody || `API error: ${res.status}`;
       const requestId = responseBody?.request_id;
       throw new ApiError(

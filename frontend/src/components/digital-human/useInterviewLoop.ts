@@ -9,17 +9,15 @@ import { api } from '../../services/api';
 
 interface UseInterviewLoopOptions {
   workflowId: string;
-  scenario: string;
-  subjectInfo: string;
-  /** 被谈话人行为模式（可选，空则自动选择） */
-  behaviorMode?: string;
+  /** 模板输入字段（school_info / student_info / interview_mode 等，任意字段名均可） */
+  inputs?: Record<string, string>;
   /** Callback for TTS word boundaries — wired to 3D avatar lip-sync */
   onTTSBoundary?: (e: TTSBoundaryEvent) => void;
   /** Callback when AI reply text is ready — wired to expression detection */
   onAssistantReply?: (text: string) => void;
 }
 
-export function useInterviewLoop({ workflowId, scenario, subjectInfo, behaviorMode, onTTSBoundary, onAssistantReply }: UseInterviewLoopOptions) {
+export function useInterviewLoop({ workflowId, inputs, onTTSBoundary, onAssistantReply }: UseInterviewLoopOptions) {
   const store = useInterviewStore;
   const initialized = useInterviewStore((s) => s.initialized);
 
@@ -92,11 +90,7 @@ export function useInterviewLoop({ workflowId, scenario, subjectInfo, behaviorMo
       try {
         const res: any = await api.post(`/conversations/${cid}/messages`, {
           content: text,
-          inputs: {
-            scenario,
-            subject_info: subjectInfo,
-            behavior_mode: behaviorMode || '',
-          },
+          inputs: inputs ? { ...inputs } : {},
         });
 
         // Extract AI reply text
@@ -124,7 +118,7 @@ export function useInterviewLoop({ workflowId, scenario, subjectInfo, behaviorMo
         store.getState().setError(err.message || '发送消息失败');
       }
     },
-    [scenario, subjectInfo, behaviorMode, tts, onAssistantReply],
+    [inputs, tts, onAssistantReply],
   );
 
   // ---- STT ----

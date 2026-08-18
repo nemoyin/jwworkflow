@@ -1,0 +1,11 @@
+.env
+*.log
+_uvicorn_live*.log
+test.db
+jwworkflow.db
+jwworkflow.db.bak
+__pycache__
+*.pyc
+.venv
+tests
+data/jwworkflow.db.bak

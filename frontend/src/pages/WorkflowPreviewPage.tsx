@@ -473,15 +473,23 @@ const WorkflowPreviewPage: React.FC = () => {
       </Modal>
 
       {/* 数字人访谈 Portal */}
-      {showDigitalHuman && (
-        <DigitalHumanInterview
-          workflowId={id!}
-          scenario={fieldValues.scenario || wf?.input_fields?.find((f: any) => f.name === 'scenario')?.default || ''}
-          subjectInfo={fieldValues.subject_info || wf?.input_fields?.find((f: any) => f.name === 'subject_info')?.default || ''}
-          behaviorMode={fieldValues.behavior_mode || wf?.input_fields?.find((f: any) => f.name === 'behavior_mode')?.default || ''}
-          onClose={() => setShowDigitalHuman(false)}
-        />
-      )}
+      {showDigitalHuman &&
+        (() => {
+          // 从表单字段值构建通用 inputs（任意字段名），原样透传供后端 {{ input.xxx }} 渲染
+          const dhInputs: Record<string, string> = {};
+          for (const f of formFields) {
+            const v = fieldValues[f.name];
+            if (v !== undefined && v !== null && v !== '') dhInputs[f.name] = String(v);
+          }
+          return (
+            <DigitalHumanInterview
+              workflowId={id!}
+              inputs={dhInputs}
+              title={wf?.name || '数字人访谈'}
+              onClose={() => setShowDigitalHuman(false)}
+            />
+          );
+        })()}
     </div>
   );
 };

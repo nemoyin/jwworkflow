@@ -15,9 +15,10 @@ const { Text } = Typography;
 
 interface Props {
   workflowId: string;
-  scenario: string;
-  subjectInfo: string;
-  behaviorMode?: string;
+  /** 模板输入字段值（任意字段名，原样透传给后端对话） */
+  inputs?: Record<string, string>;
+  /** 工作流标题，显示在顶部状态栏 */
+  title?: string;
   onClose: () => void;
 }
 
@@ -37,7 +38,7 @@ const phaseColor: Record<string, string> = {
   error: 'error',
 };
 
-const DigitalHumanInterview: React.FC<Props> = ({ workflowId, scenario, subjectInfo, behaviorMode, onClose }) => {
+const DigitalHumanInterview: React.FC<Props> = ({ workflowId, inputs, title, onClose }) => {
   const phase = useInterviewStore((s) => s.phase);
   const error = useInterviewStore((s) => s.error);
   const initialized = useInterviewStore((s) => s.initialized);
@@ -67,9 +68,7 @@ const DigitalHumanInterview: React.FC<Props> = ({ workflowId, scenario, subjectI
     setVolume,
   } = useInterviewLoop({
     workflowId,
-    scenario,
-    subjectInfo,
-    behaviorMode,
+    inputs,
     onTTSBoundary: (e) => {
       avatarControlsRef.current?.handleBoundary(e);
     },
@@ -141,9 +140,9 @@ const DigitalHumanInterview: React.FC<Props> = ({ workflowId, scenario, subjectI
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Tag color={phaseColor[phase] || 'default'}>{phaseLabel[phase] || phase}</Tag>
-          {scenario && (
+          {title && (
             <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
-              场景：{scenario}
+              {title}
             </Text>
           )}
           {!sttSupported && (
